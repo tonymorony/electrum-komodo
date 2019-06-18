@@ -40,11 +40,13 @@ def read_json(filename, default):
 class BitcoinMainnet:
 
     TESTNET = False
-    WIF_PREFIX = 0x80
-    ADDRTYPE_P2PKH = bytes.fromhex('1CB8')
-    ADDRTYPE_P2SH = bytes.fromhex('1CBD')
-    GENESIS = "00040fe8ec8471911baa1db1266ea15dd06b4a8a5c453883c000b031973dce08"
-    DEFAULT_PORTS = {'t': '50021', 's': '50022'}
+    WIF_PREFIX = 0xbc
+    #ADDRTYPE_P2PKH = 0x3c
+    #ADDRTYPE_P2SH = 0x55
+    ADDRTYPE_P2PKH = [0x3c]
+    ADDRTYPE_P2SH = [0x55]
+    GENESIS = "027e3758c3a65b12aa1046462b486d0a63bfa1beae327897f56c5cfb7daaae71"
+    DEFAULT_PORTS = {'t': '10017', 's': '10017'}
     DEFAULT_SERVERS = read_json('servers.json', {})
     CHECKPOINTS = read_json('checkpoints.json', [])
 
@@ -54,7 +56,7 @@ class BitcoinMainnet:
     XPUB_HEADERS = {
         'standard':    0x0488b21e,  # xpub
     }
-    OVERWINTER_HEIGHT = 347500
+    OVERWINTER_HEIGHT = 2
 
 
 class BitcoinTestnet:
