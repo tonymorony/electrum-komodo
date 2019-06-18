@@ -10,7 +10,7 @@ from .util import (user_dir, print_error, PrintError,
                    NoDynamicFeeEstimates)
 from .i18n import _
 
-FEE_ETA_TARGETS = [25, 10, 5, 2]
+FEE_ETA_TARGETS = [0]
 FEE_DEPTH_TARGETS = [10000000, 5000000, 2000000, 1000000, 500000, 200000, 100000]
 
 # satoshi per kbyte
@@ -18,7 +18,7 @@ FEERATE_MAX_DYNAMIC = 150000
 FEERATE_WARNING_HIGH_FEE = 100000
 FEERATE_FALLBACK_STATIC_FEE = 1000
 FEERATE_DEFAULT_RELAY = 1000
-FEERATE_STATIC_VALUES = [150, 300, 500, 1000, 1500, 2500, 3500, 5000, 7500, 10000]
+FEERATE_STATIC_VALUES = [10000]
 
 
 config = None
@@ -434,7 +434,7 @@ class SimpleConfig(PrintError):
             return self.has_fee_etas()
 
     def is_dynfee(self):
-        return bool(self.get('dynamic_fees', True))
+        return False #bool(self.get('dynamic_fees', True))
 
     def use_mempool_fees(self):
         return False
