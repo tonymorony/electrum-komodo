@@ -1,157 +1,96 @@
-# -*- mode: python -*-
-import os
-import os.path
-import sys
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
 
+import sys
+import os
+
+PACKAGE='Komodo Electrum'
+PYPKG='electrum_xsg'
+MAIN_SCRIPT='electrum-zcash'
+ICONS_FILE='electrum-zcash.icns'
 
 for i, x in enumerate(sys.argv):
     if x == '--name':
-        cmdline_name = sys.argv[i+1]
+        VERSION = sys.argv[i+1]
         break
 else:
-    raise Exception('no name')
+    raise BaseException('no version')
 
-PY36BINDIR =  os.environ.get('PY36BINDIR')
+electrum = os.path.abspath(".") + "/"
+block_cipher = None
 
-hiddenimports = collect_submodules('trezorlib')
+# see https://github.com/pyinstaller/pyinstaller/issues/2005
+hiddenimports = []
+hiddenimports += collect_submodules('trezorlib')
 hiddenimports += collect_submodules('btchip')
 hiddenimports += collect_submodules('keepkeylib')
 hiddenimports += collect_submodules('websocket')
-hiddenimports += [
-    'lib',
-    'lib.base_wizard',
-    'lib.plot',
-    'lib.qrscanner',
-    'lib.websockets',
-    'gui.qt',
-
-    'plugins',
-
-    'plugins.hw_wallet.qt',
-
-    'plugins.audio_modem.qt',
-    'plugins.cosigner_pool.qt',
-    'plugins.digitalbitbox.qt',
-    'plugins.email_requests.qt',
-    'plugins.keepkey.qt',
-    'plugins.labels.qt',
-    'plugins.trezor.qt',
-    'plugins.ledger.qt',
-    'plugins.virtualkeyboard.qt',
-]
 
 datas = [
-    ('lib/servers.json', 'electrum_zcash'),
-    ('lib/servers_testnet.json', 'electrum_zcash'),
-    ('lib/servers_regtest.json', 'electrum_zcash'),
-    ('lib/currencies.json', 'electrum_zcash'),
-    ('lib/locale', 'electrum_zcash/locale'),
-    ('lib/wordlist', 'electrum_zcash/wordlist'),
+    (electrum+'lib/currencies.json', PYPKG),
+    (electrum+'lib/servers.json', PYPKG),
+    (electrum+'lib/servers_testnet.json', PYPKG),
+    (electrum+'lib/wordlist/english.txt', PYPKG + '/wordlist'),
+    (electrum+'plugins', PYPKG + '_plugins'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
 datas += collect_data_files('keepkeylib')
 
-binaries = [('../libusb-1.0.dylib', '.')]
+# Add libusb so Trezor will work
+binaries = [(electrum + "contrib/zcash/libusb-1.0.dylib", ".")]
 
-# https://github.com/pyinstaller/pyinstaller/wiki/Recipe-remove-tkinter-tcl
-sys.modules['FixTk'] = None
-excludes = ['FixTk', 'tcl', 'tk', '_tkinter', 'tkinter', 'Tkinter']
-excludes += [
-    'PyQt5.QtCLucene',
-    'PyQt5.Qt5CLucene',
-    'PyQt5.QtDesigner',
-    'PyQt5.QtDesignerComponents',
-    'PyQt5.QtHelp',
-    'PyQt5.QtLocation',
-    'PyQt5.QtMultimedia',
-    'PyQt5.QtMultimediaQuick_p',
-    'PyQt5.QtMultimediaWidgets',
-    'PyQt5.QtNetwork',
-    'PyQt5.QtOpenGL',
-    'PyQt5.QtPositioning',
-    'PyQt5.QtPrintSupport',
-    'PyQt5.QtQml',
-    'PyQt5.QtQuick',
-    'PyQt5.QtQuickParticles',
-    'PyQt5.QtQuickWidgets',
-    'PyQt5.QtSensors',
-    'PyQt5.QtSerialPort',
-    'PyQt5.QtSql',
-    'PyQt5.Qt5Sql',
-    'PyQt5.QtTest',
-    'PyQt5.QtWebChannel',
-    'PyQt5.QtWebKit',
-    'PyQt5.QtWebKitWidgets',
-    'PyQt5.QtWebSockets',
-    'PyQt5.QtXml',
-    'PyQt5.QtXmlPatterns',
-    'PyQt5.QtWebProcess',
-    'PyQt5.QtWinExtras',
-]
+# Workaround for "Retro Look":
+binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]
 
-a = Analysis(['electrum-zcash'],
-             pathex=['plugins'],
-             hiddenimports=hiddenimports,
-             datas=datas,
+# We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
+a = Analysis([electrum+MAIN_SCRIPT,
+              electrum+'gui/qt/main_window.py',
+              electrum+'gui/text.py',
+              electrum+'lib/util.py',
+              electrum+'lib/wallet.py',
+              electrum+'lib/simple_config.py',
+              electrum+'lib/bitcoin.py',
+              electrum+'lib/dnssec.py',
+              electrum+'lib/commands.py',
+              electrum+'plugins/cosigner_pool/qt.py',
+              electrum+'plugins/email_requests/qt.py',
+              electrum+'plugins/trezor/client.py',
+              electrum+'plugins/trezor/qt.py',
+              electrum+'plugins/keepkey/qt.py',
+              electrum+'plugins/ledger/qt.py',
+              ],
              binaries=binaries,
-             excludes=excludes,
-             runtime_hooks=['pyi_runtimehook.py'])
+             datas=datas,
+             hiddenimports=hiddenimports,
+             hookspath=[])
 
-# http://stackoverflow.com/questions/19055089/
+# http://stackoverflow.com/questions/19055089/pyinstaller-onefile-warning-pyconfig-h-when-importing-scipy-or-scipy-signal
 for d in a.datas:
     if 'pyconfig' in d[0]:
         a.datas.remove(d)
         break
 
-# Add TOC to electrum_zcash, electrum_zcash_gui, electrum_zcash_plugins
-for p in sorted(a.pure):
-    if p[0].startswith('lib') and p[2] == 'PYMODULE':
-        a.pure += [('electrum_zcash%s' % p[0][3:] , p[1], p[2])]
-    if p[0].startswith('gui') and p[2] == 'PYMODULE':
-        a.pure += [('electrum_zcash_gui%s' % p[0][3:] , p[1], p[2])]
-    if p[0].startswith('plugins') and p[2] == 'PYMODULE':
-        a.pure += [('electrum_zcash_plugins%s' % p[0][7:] , p[1], p[2])]
-
-pyz = PYZ(a.pure)
+pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(pyz,
           a.scripts,
-          exclude_binaries=True,
+          a.binaries,
+          a.datas,
+          name=PACKAGE,
           debug=False,
           strip=False,
-          upx=False,
-          console=False,
-          icon='icons/electrum-zcash.ico',
-          name=os.path.join('build/electrum-zcash/electrum-zcash', cmdline_name))
+          upx=True,
+          icon=electrum+ICONS_FILE,
+          console=False)
 
-# trezorctl separate bin
-tctl_a = Analysis([os.path.join(PY36BINDIR, 'trezorctl')],
-                  hiddenimports=['pkgutil'],
-                  excludes=excludes,
-                  runtime_hooks=['pyi_tctl_runtimehook.py'])
+app = BUNDLE(exe,
+             version = VERSION,
+             name=PACKAGE + '.app',
+             icon=electrum+ICONS_FILE,
+             bundle_identifier=None,
+             info_plist={
+                'NSHighResolutionCapable': 'True',
+                'NSSupportsAutomaticGraphicsSwitching': 'True'
+             }
+)
 
-tctl_pyz = PYZ(tctl_a.pure)
-
-tctl_exe = EXE(tctl_pyz,
-           tctl_a.scripts,
-           exclude_binaries=True,
-           debug=False,
-           strip=False,
-           upx=False,
-           console=True,
-           name=os.path.join('build/electrum-zcash/electrum-zcash', 'trezorctl.bin'))
-
-coll = COLLECT(exe, tctl_exe,
-               a.binaries,
-               a.datas,
-               strip=False,
-               upx=False,
-               name=os.path.join('dist', 'electrum-zcash'))
-
-app = BUNDLE(coll,
-             name=os.path.join('dist', 'Electrum-Zcash.app'),
-             appname="Electrum-Zcash",
-	         icon='electrum-zcash.icns',
-             version = 'ELECTRUM_VERSION')
