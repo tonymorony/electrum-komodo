@@ -16,9 +16,10 @@ FEE_DEPTH_TARGETS = [10000000, 5000000, 2000000, 1000000, 500000, 200000, 100000
 # satoshi per kbyte
 FEERATE_MAX_DYNAMIC = 150000
 FEERATE_WARNING_HIGH_FEE = 100000
-FEERATE_FALLBACK_STATIC_FEE = 1000
+FEERATE_FALLBACK_STATIC_FEE = 10000
 FEERATE_DEFAULT_RELAY = 1000
 FEERATE_STATIC_VALUES = [10000]
+STATIC_KMD_FEE = 10000
 
 
 config = None
@@ -464,7 +465,7 @@ class SimpleConfig(PrintError):
 
     @classmethod
     def estimate_fee_for_feerate(cls, fee_per_kb, size):
-        return round(fee_per_kb * size / 1000)
+        return STATIC_KMD_FEE
 
     def update_fee_estimates(self, key, value):
         self.fee_estimates[key] = value
