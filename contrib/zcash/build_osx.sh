@@ -1,3 +1,7 @@
+# Distributed under the MIT software license
+# Copyright © 2019 Snowgem Developers
+# Copyright © 2019 The SuperNET Developers
+
 #!/bin/bash
 RED='\033[0;31m'
 BLUE='\033[0,34m'
