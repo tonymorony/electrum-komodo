@@ -142,7 +142,7 @@ class BitcoinAverage(ExchangeBase):
 class Bittrex(ExchangeBase):
     def get_rates(self, ccy):
         json = self.get_json('bittrex.com',
-                             '/api/v1.1/public/getticker?market=BTC-ZEC')
+                             '/api/v1.1/public/getticker?market=BTC-KMD')
         quote_currencies = {}
         if not json.get('success', False):
             return quote_currencies
