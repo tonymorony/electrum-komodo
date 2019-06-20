@@ -40,7 +40,7 @@ def inv_dict(d):
     return {v: k for k, v in d.items()}
 
 
-base_units = {'ZEC':8, 'mZEC':5, 'uZEC':2}
+base_units = {'KMD':8, 'mKMD':5, 'uKMD':2}
 
 def normalize_version(v):
     return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
@@ -506,7 +506,7 @@ def time_difference(distance_in_time, include_seconds):
         return "over %d years" % (round(distance_in_minutes / 525600))
 
 mainnet_block_explorers = {
-    'blockexplorer.com': ('https://zcash.blockexplorer.com/blocks/',
+    'blockexplorer.com': ('https://kmdexplorer.io/',
                         {'tx': 'transactions/', 'addr': 'addresses/'}),
     'system default': ('blockchain:/',
                         {'tx': 'tx/', 'addr': 'address/'}),
