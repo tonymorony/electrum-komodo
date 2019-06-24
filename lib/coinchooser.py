@@ -28,6 +28,8 @@ from math import floor, log10
 from .bitcoin import sha256, COIN, TYPE_ADDRESS, is_address
 from .transaction import Transaction
 from .util import NotEnoughFunds, PrintError
+import math
+import time
 
 
 # A simple deterministic PRNG.  Used to deterministically shuffle a
@@ -36,6 +38,33 @@ from .util import NotEnoughFunds, PrintError
 # so if sending twice from the same UTXO set we choose the same UTXOs
 # to spend.  This prevents attacks on users by malicious or stale
 # servers.
+KOMODO_ENDOFERA = 7777777
+LOCKTIME_THRESHOLD = 500000000
+
+def calcInterest(locktime, value, height, inSats):
+    timestampDiff = math.floor(time.time()) - locktime - 777;
+    hoursPassed = math.floor(timestampDiff / 3600);
+    minutesPassed = math.floor((timestampDiff - (hoursPassed * 3600)) / 60);
+    secondsPassed = timestampDiff - (hoursPassed * 3600) - (minutesPassed * 60);
+    timestampDiffMinutes = timestampDiff / 60;
+    interest = 0;
+
+    if height < KOMODO_ENDOFERA and locktime >= LOCKTIME_THRESHOLD:
+        if timestampDiffMinutes >= 60:
+            if height >= 1000000 and timestampDiffMinutes > 31 * 24 * 60:
+                timestampDiffMinutes = 31 * 24 * 60
+            else:
+                if timestampDiffMinutes > 365 * 24 * 60:
+                    timestampDiffMinutes = 365 * 24 * 60
+
+        timestampDiffMinutes -= 59
+        interest = int(math.floor(value / 10512000) * timestampDiffMinutes)
+
+    if interest < 0:
+        interest = 0
+
+    return interest
+
 class PRNG:
     def __init__(self, seed):
         self.sha = sha256(seed)
@@ -181,6 +210,11 @@ class CoinChooserBase(PrintError):
             self.print_error('not keeping dust', dust)
         return change
 
+    def change_outputs_interest(self, tx, change_addrs, amount):
+        change = [(TYPE_ADDRESS, change_addrs[0], amount)]
+        self.print_error('interest change:', change)
+        return change
+
     def make_tx(self, coins, outputs, change_addrs, fee_estimator,
                 dust_threshold):
         """Select unspent coins to spend to pay outputs.  If the change is
@@ -224,6 +258,20 @@ class CoinChooserBase(PrintError):
                                       self.penalty_func(tx))
 
         tx.add_inputs([coin for b in buckets for coin in b.coins])
+        
+        # kmd calc interest
+        print(tx.inputs())
+        interest = 0
+        inputs = tx.inputs()
+
+        for input in inputs:
+            interest += calcInterest(input['locktime'], input['value'], input['height'], True)
+            print(input)
+            print('interest')
+            print(calcInterest(input['locktime'], input['value'], input['height'], True))
+
+        print('total interest in sats')
+        print(interest)
         tx_weight = get_tx_weight(buckets)
 
         # change is sent back to sending address unless specified
@@ -237,10 +285,22 @@ class CoinChooserBase(PrintError):
         output_weight = 4 * Transaction.estimated_output_size(change_addrs[0])
         fee = lambda count: fee_estimator_w(tx_weight + count * output_weight)
         change = self.change_outputs(tx, change_addrs, fee, dust_threshold)
+        
+        print('change')
+        print(change)
+        print(change_addrs)
+        
         tx.add_outputs(change)
+
+        if interest > 0:
+            interest_change = self.change_outputs_interest(tx, change_addrs, interest)
+            tx.add_outputs(interest_change)
 
         self.print_error("using %d inputs" % len(tx.inputs()))
         self.print_error("using buckets:", [bucket.desc for bucket in buckets])
+
+        print('coinchooser rawtx')
+        print(tx)
 
         return tx
 
