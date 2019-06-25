@@ -261,15 +261,12 @@ def hash_160(public_key):
 
 
 def hash160_to_b58_address(h160, addrtype):
-    s = bytes(addrtype)
+    s = bytes([addrtype])
     s += h160
     return base_encode(s+Hash(s)[0:4], base=58)
 
-
 def b58_address_to_hash160(addr):
     addr = to_bytes(addr, 'ascii')
-    #_bytes = base_decode(addr, 26, base=58)
-    #return [_bytes[0], _bytes[1]], _bytes[2:22]
     _bytes = base_decode(addr, 25, base=58)
     return _bytes[0], _bytes[1:21]
 
@@ -309,11 +306,11 @@ def address_to_script(addr, *, net=None):
     if net is None:
         net = constants.net
     addrtype, hash_160 = b58_address_to_hash160(addr)
-    if addrtype == net.ADDRTYPE_P2PKH[0]:
+    if addrtype == net.ADDRTYPE_P2PKH:
         script = '76a9'                                      # op_dup, op_hash_160
         script += push_script(bh2u(hash_160))
         script += '88ac'                                     # op_equalverify, op_checksig
-    elif addrtype == net.ADDRTYPE_P2SH[0]:
+    elif addrtype == net.ADDRTYPE_P2SH:
         script = 'a9'                                        # op_hash_160
         script += push_script(bh2u(hash_160))
         script += '87'                                       # op_equal
@@ -512,10 +509,9 @@ def is_b58_address(addr):
         addrtype, h = b58_address_to_hash160(addr)
     except Exception as e:
         return False
-    if addrtype != constants.net.ADDRTYPE_P2PKH[0] and addrtype != constants.net.ADDRTYPE_P2SH[0]:
-    #if addrtype not in [constants.net.ADDRTYPE_P2PKH, constants.net.ADDRTYPE_P2SH]:
+    if addrtype not in [constants.net.ADDRTYPE_P2PKH, constants.net.ADDRTYPE_P2SH]:
         return False
-    return addr == hash160_to_b58_address(h, [addrtype])
+    return addr == hash160_to_b58_address(h, addrtype)
 
 def is_address(addr):
     return is_b58_address(addr)
