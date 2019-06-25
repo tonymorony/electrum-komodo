@@ -1527,7 +1527,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         amount = tx.output_value() if self.is_max else sum(map(lambda x:x[2], outputs))
         fee = tx.get_fee()
 
-        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000 and fee > 0:
             self.show_error('\n'.join([
                 _("This transaction requires a higher fee, or it will not be propagated by your current server"),
                 _("Try to raise your transaction fee, or use a server with a lower relay fee.")
