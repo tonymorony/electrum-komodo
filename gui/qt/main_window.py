@@ -731,8 +731,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 text = _("Server is lagging ({} blocks)").format(server_lag)
                 icon = QIcon(":icons/status_lagging.png")
             else:
-                c, u, x = self.wallet.get_balance()
+                c, u, x, interest = self.wallet.get_balance()
                 text =  _("Balance" ) + ": %s "%(self.format_amount_and_units(c))
+                if interest > 0:
+                    text +=  _(" |  Interest" ) + ": %s "%(self.format_amount_and_units(interest))
                 if u:
                     text +=  " [%s unconfirmed]"%(self.format_amount(u, True).strip())
                 if x:
@@ -1064,7 +1066,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         completer.setCaseSensitivity(False)
         self.payto_e.set_completer(completer)
         completer.setModel(self.completions)
-
+        
         msg = _('Description of the transaction (not mandatory).') + '\n\n'\
               + _('The description is not sent to the recipient of the funds. It is stored in your wallet file, and displayed in the \'History\' tab.')
         description_label = HelpLabel(_('Description'), msg)
