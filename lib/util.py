@@ -89,7 +89,6 @@ class WalletFileException(Exception): pass
 
 class BitcoinException(Exception): pass
 
-
 # Throw this exception to unwind the stack like when an error occurs.
 # However unlike other exceptions the user won't be informed.
 class UserCancelled(Exception):
@@ -507,7 +506,7 @@ def time_difference(distance_in_time, include_seconds):
 
 mainnet_block_explorers = {
     'blockexplorer.com': ('https://kmdexplorer.io/',
-                        {'tx': 'transactions/', 'addr': 'addresses/'}),
+                        {'tx': 'tx/', 'addr': 'address/'}),
     'system default': ('blockchain:/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
@@ -663,7 +662,7 @@ class SocketPipe:
     def __init__(self, socket):
         self.socket = socket
         self.message = b''
-        self.set_timeout(0.1)
+        self.set_timeout(0.5)
         self.recv_time = time.time()
 
     def set_timeout(self, t):
