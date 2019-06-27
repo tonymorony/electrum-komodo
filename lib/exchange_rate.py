@@ -26,7 +26,7 @@ CCY_PRECISIONS = {'BHD': 3, 'BIF': 0, 'BYR': 0, 'CLF': 4, 'CLP': 0,
                   'BTC': 8}
 
 
-DEFAULT_EXCHANGE = 'BitcoinAverage'
+DEFAULT_EXCHANGE = 'AtomicExplorer'
 DEFAULT_CCY = 'USD'
 
 
@@ -171,6 +171,14 @@ class CoinMarketCap(ExchangeBase):
             ('USD', 'price_usd'),
         ]:
             quote_currencies[ccy] = Decimal(json[key])
+        return quote_currencies
+
+class AtomicExplorer(ExchangeBase):
+    def get_rates(self, ccy):
+        json = self.get_json('atomicexplorer.com', '/api/mm/prices/v2?coins=kmd&currency=' + ccy)
+        quote_currencies = {}
+        kmd_ticker = json.get('result').get('KMD').get(ccy)
+        quote_currencies[ccy] = Decimal(kmd_ticker)
         return quote_currencies
 
 
