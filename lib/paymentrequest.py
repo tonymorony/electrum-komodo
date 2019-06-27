@@ -47,8 +47,8 @@ from . import rsakey
 
 from .bitcoin import TYPE_ADDRESS
 
-REQUEST_HEADERS = {'Accept': 'application/zcash-paymentrequest', 'User-Agent': 'Electrum-Komodo'}
-ACK_HEADERS = {'Content-Type':'application/zcash-payment','Accept':'application/zcash-paymentack','User-Agent':'Electrum-Komodo'}
+REQUEST_HEADERS = {'Accept': 'application/komodo-paymentrequest', 'User-Agent': 'Electrum-Komodo'}
+ACK_HEADERS = {'Content-Type':'application/komodo-payment','Accept':'application/komodo-paymentack','User-Agent':'Electrum-Komodo'}
 
 ca_path = requests.certs.where()
 ca_list = None
@@ -76,9 +76,9 @@ def get_payment_request(url):
         try:
             response = requests.request('GET', url, headers=REQUEST_HEADERS)
             response.raise_for_status()
-            # Guard against `zcash:`-URIs with invalid payment request URLs
+            # Guard against `komodo:`-URIs with invalid payment request URLs
             if "Content-Type" not in response.headers \
-            or response.headers["Content-Type"] != "application/zcash-paymentrequest":
+            or response.headers["Content-Type"] != "application/komodo-paymentrequest":
                 data = None
                 error = "payment URL not pointing to a payment request handling server"
             else:

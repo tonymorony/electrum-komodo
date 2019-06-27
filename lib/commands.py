@@ -130,8 +130,8 @@ class Commands:
     @command('wn')
     def restore(self, text):
         """Restore a wallet from text. Text can be a seed phrase, a master
-        public key, a master private key, a list of Zcash addresses
-        or Zcash private keys. If you want to be prompted for your
+        public key, a master private key, a list of Komodo addresses
+        or Komodo private keys. If you want to be prompted for your
         seed, type '?' or ':' (concealed) """
         raise Exception('Not a JSON-RPC command')
 
@@ -460,7 +460,7 @@ class Commands:
 
     @command('w')
     def setlabel(self, key, label):
-        """Assign a label to an item. Item may be a Zcash address or a
+        """Assign a label to an item. Item may be a Komodo address or a
         transaction ID"""
         self.wallet.set_label(key, label)
 
@@ -674,8 +674,8 @@ class Commands:
 
 param_descriptions = {
     'privkey': 'Private key. Type \'?\' to get a prompt.',
-    'destination': 'Zcash address, contact or alias',
-    'address': 'Zcash address',
+    'destination': 'Komodo address, contact or alias',
+    'address': 'Komodo address',
     'seed': 'Seed phrase',
     'txid': 'Transaction ID',
     'pos': 'Position',
@@ -750,10 +750,10 @@ config_variables = {
         'requests_dir': 'directory where a bip70 file will be written.',
         'ssl_privkey': 'Path to your SSL private key, needed to sign the request.',
         'ssl_chain': 'Chain of SSL certificates, needed for signed requests. Put your certificate at the top and the root CA at the end',
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of zcash: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.z.cash/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of komodo: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.z.cash/\')\"',
     },
     'listrequests':{
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of zcash: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.z.cash/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of komodo: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.z.cash/\')\"',
     }
 }
 
@@ -831,7 +831,7 @@ def get_parser():
     subparsers = parser.add_subparsers(dest='cmd', metavar='<command>')
     # gui
     parser_gui = subparsers.add_parser('gui', description="Run Electrum-Komodo Graphical User Interface.", help="Run GUI (default)")
-    parser_gui.add_argument("url", nargs='?', default=None, help="Zcash URI (or bip70 file)")
+    parser_gui.add_argument("url", nargs='?', default=None, help="Komodo URI (or bip70 file)")
     parser_gui.add_argument("-g", "--gui", dest="gui", help="select graphical user interface", choices=['qt', 'kivy', 'text', 'stdio'])
     parser_gui.add_argument("-o", "--offline", action="store_true", dest="offline", default=False, help="Run offline")
     parser_gui.add_argument("-m", action="store_true", dest="hide_gui", default=False, help="hide GUI on startup")
