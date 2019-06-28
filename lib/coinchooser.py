@@ -28,9 +28,7 @@ from math import floor, log10
 from .bitcoin import sha256, COIN, TYPE_ADDRESS, is_address
 from .transaction import Transaction
 from .util import NotEnoughFunds, PrintError
-import math
-import time
-
+from .komodo_interest import calcInterest
 
 # A simple deterministic PRNG.  Used to deterministically shuffle a
 # set of coins - the same set of coins should produce the same output.
@@ -38,32 +36,6 @@ import time
 # so if sending twice from the same UTXO set we choose the same UTXOs
 # to spend.  This prevents attacks on users by malicious or stale
 # servers.
-KOMODO_ENDOFERA = 7777777
-LOCKTIME_THRESHOLD = 500000000
-
-def calcInterest(locktime, value, height, inSats):
-    timestampDiff = math.floor(time.time()) - locktime - 777;
-    hoursPassed = math.floor(timestampDiff / 3600);
-    minutesPassed = math.floor((timestampDiff - (hoursPassed * 3600)) / 60);
-    secondsPassed = timestampDiff - (hoursPassed * 3600) - (minutesPassed * 60);
-    timestampDiffMinutes = timestampDiff / 60;
-    interest = 0;
-
-    if height < KOMODO_ENDOFERA and locktime >= LOCKTIME_THRESHOLD:
-        if timestampDiffMinutes >= 60:
-            if height >= 1000000 and timestampDiffMinutes > 31 * 24 * 60:
-                timestampDiffMinutes = 31 * 24 * 60
-            else:
-                if timestampDiffMinutes > 365 * 24 * 60:
-                    timestampDiffMinutes = 365 * 24 * 60
-
-        timestampDiffMinutes -= 59
-        interest = int(math.floor(value / 10512000) * timestampDiffMinutes)
-
-    if interest < 0:
-        interest = 0
-
-    return interest
 
 class PRNG:
     def __init__(self, seed):

@@ -66,6 +66,7 @@ from . import paymentrequest
 from .paymentrequest import PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .paymentrequest import InvoiceStore
 from .contacts import Contacts
+from .komodo_interest import calcInterest
 
 TX_STATUS = [
     _('Unconfirmed'),
@@ -77,33 +78,6 @@ TX_STATUS = [
 TX_HEIGHT_LOCAL = -2
 TX_HEIGHT_UNCONF_PARENT = -1
 TX_HEIGHT_UNCONFIRMED = 0
-
-KOMODO_ENDOFERA = 7777777
-LOCKTIME_THRESHOLD = 500000000
-
-def calcInterest(locktime, value, height, inSats):
-    timestampDiff = math.floor(time.time()) - locktime - 777;
-    hoursPassed = math.floor(timestampDiff / 3600);
-    minutesPassed = math.floor((timestampDiff - (hoursPassed * 3600)) / 60);
-    secondsPassed = timestampDiff - (hoursPassed * 3600) - (minutesPassed * 60);
-    timestampDiffMinutes = timestampDiff / 60;
-    interest = 0;
-
-    if height < KOMODO_ENDOFERA and locktime >= LOCKTIME_THRESHOLD:
-        if timestampDiffMinutes >= 60:
-            if height >= 1000000 and timestampDiffMinutes > 31 * 24 * 60:
-                timestampDiffMinutes = 31 * 24 * 60
-            else:
-                if timestampDiffMinutes > 365 * 24 * 60:
-                    timestampDiffMinutes = 365 * 24 * 60
-
-        timestampDiffMinutes -= 59
-        interest = int(math.floor(value / 10512000) * timestampDiffMinutes)
-
-    if interest < 0:
-        interest = 0
-
-    return interest
 
 def relayfee(network):
     from .simple_config import FEERATE_DEFAULT_RELAY
@@ -376,7 +350,7 @@ class Abstract_Wallet(PrintError):
         addrs = self.get_receiving_addresses()
         if len(addrs) > 0:
             if not bitcoin.is_address(addrs[0]):
-                raise WalletFileException('The addresses in this wallet are not Zcash addresses.')
+                raise WalletFileException('The addresses in this wallet are not Komodo addresses.')
 
     def synchronize(self):
         pass
@@ -1215,6 +1189,7 @@ class Abstract_Wallet(PrintError):
                 status = 2
         else:
             status = 3 + min(conf, 6)
+
         time_str = format_time(timestamp) if timestamp else _("unknown")
         status_str = TX_STATUS[status] if status < 4 else time_str
         if extra:
@@ -1235,7 +1210,7 @@ class Abstract_Wallet(PrintError):
             _type, data, value = o
             if _type == TYPE_ADDRESS:
                 if not is_address(data):
-                    raise Exception("Invalid Zcash address: {}".format(data))
+                    raise Exception("Invalid Komodo address: {}".format(data))
             if value == '!':
                 if i_max is not None:
                     raise Exception("More than one output set to spend max")
@@ -1524,7 +1499,7 @@ class Abstract_Wallet(PrintError):
         if not r:
             return
         out = copy.copy(r)
-        out['URI'] = 'zcash:' + addr + '?amount=' + format_satoshis(out.get('amount'))
+        out['URI'] = 'komodo:' + addr + '?amount=' + format_satoshis(out.get('amount'))
         status, conf = self.get_request_status(addr)
         out['status'] = status
         if conf is not None:
@@ -1601,7 +1576,7 @@ class Abstract_Wallet(PrintError):
     def add_payment_request(self, req, config):
         addr = req['address']
         if not bitcoin.is_address(addr):
-            raise Exception(_('Invalid Zcash address.'))
+            raise Exception(_('Invalid Komodo address.'))
         if not self.is_mine(addr):
             raise Exception(_('Address not in wallet.'))
 
@@ -2301,7 +2276,7 @@ wallet_constructors = {
     'standard': Standard_Wallet,
     'old': Standard_Wallet,
     'xpub': Standard_Wallet,
-    'imported': Imported_Wallet
+    'imported': Imported_Wallet,
 }
 
 def register_constructor(wallet_type, constructor):
