@@ -1555,10 +1555,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             return
 
         # confirmation dialog
-        msg = [
-            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
-            _("Mining fee") + ": " + self.format_amount_and_units(fee),
-        ]
+        if fee > 0:
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+                _("Mining fee") + ": " + self.format_amount_and_units(fee),
+            ]
+        else:
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+                _("Interest") + ": " + self.format_amount_and_units(abs(fee)),
+            ]
 
         x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
         if x_fee:
