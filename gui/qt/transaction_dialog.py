@@ -242,7 +242,10 @@ class TxDialog(QDialog, MessageBoxMixin):
         else:
             amount_str = _("Amount sent:") + ' %s'% format_amount(-amount) + ' ' + base_unit
         size_str = _("Size:") + ' %d bytes'% size
-        fee_str = _("Fee") + ': %s' % (format_amount(fee) + ' ' + base_unit if fee is not None else _('unknown'))
+        if fee is not None and fee < 0:
+            fee_str = _("Interest") + ': %s' % (format_amount(abs(fee)) + ' ' + base_unit if fee is not None else _('unknown'))
+        else:
+            fee_str = _("Fee") + ': %s' % (format_amount(fee) + ' ' + base_unit if fee is not None else _('unknown'))
         if fee is not None:
             fee_rate = fee/size*1000
             fee_str += '  ( %s ) ' % self.main_window.format_fee_rate(fee_rate)
