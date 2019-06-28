@@ -971,6 +971,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.show_message(_("Request saved successfully"))
             self.saved = True
 
+    def get_self_address(self):
+        addr = self.wallet.get_unused_address() or self.wallet.get_receiving_address()
+        self.payto_e.setText(addr)
+
     def new_payment_request(self):
         addr = self.wallet.get_unused_address()
         if addr is None:
@@ -1056,6 +1060,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         from .paytoedit import PayToEdit
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
         self.payto_e = PayToEdit(self)
+        self.payto_e.setFixedWidth(360);
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Zcash address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Zcash address)')
         payto_label = HelpLabel(_('Pay to'), msg)
@@ -1067,6 +1072,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.payto_e.set_completer(completer)
         completer.setModel(self.completions)
         
+        self.self_button = EnterButton(_("Self"), self.get_self_address)
+        self.self_button.setFixedWidth(100)
+        grid.addWidget(self.self_button, 1, 5)
+
         msg = _('Description of the transaction (not mandatory).') + '\n\n'\
               + _('The description is not sent to the recipient of the funds. It is stored in your wallet file, and displayed in the \'History\' tab.')
         description_label = HelpLabel(_('Description'), msg)
@@ -1527,7 +1536,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         amount = tx.output_value() if self.is_max else sum(map(lambda x:x[2], outputs))
         fee = tx.get_fee()
 
-        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+        print('fee')
+        print(fee)
+
+        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000 and fee > 0:
             self.show_error('\n'.join([
                 _("This transaction requires a higher fee, or it will not be propagated by your current server"),
                 _("Try to raise your transaction fee, or use a server with a lower relay fee.")
