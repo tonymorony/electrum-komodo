@@ -402,11 +402,11 @@ def user_dir():
     if 'ANDROID_DATA' in os.environ:
         return android_check_data_dir()
     elif os.name == 'posix':
-        return os.path.join(os.environ["HOME"], ".electrum-zcash")
+        return os.path.join(os.environ["HOME"], ".electrum-komodo")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "Electrum-Zcash")
+        return os.path.join(os.environ["APPDATA"], "Electrum-Komodo")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-Zcash")
+        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-Komodo")
     else:
         #raise Exception("No home directory found in environment variables.")
         return
@@ -548,12 +548,12 @@ def parse_URI(uri, on_pr=None):
 
     if ':' not in uri:
         if not bitcoin.is_address(uri):
-            raise Exception("Not a Zcash address")
+            raise Exception("Not a Komodo address")
         return {'address': uri}
 
     u = urllib.parse.urlparse(uri)
-    if u.scheme != 'zcash':
-        raise Exception("Not a Zcash URI")
+    if u.scheme != 'komodo':
+        raise Exception("Not a Komodo URI")
     address = u.path
 
     # python for android fails to parse query
@@ -570,7 +570,7 @@ def parse_URI(uri, on_pr=None):
     out = {k: v[0] for k, v in pq.items()}
     if address:
         if not bitcoin.is_address(address):
-            raise Exception("Invalid Zcash address:" + address)
+            raise Exception("Invalid Komodo address:" + address)
         out['address'] = address
     if 'amount' in out:
         am = out['amount']
@@ -620,7 +620,7 @@ def create_URI(addr, amount, message):
         query.append('amount=%s'%format_satoshis_plain(amount))
     if message:
         query.append('message=%s'%urllib.parse.quote(message))
-    p = urllib.parse.ParseResult(scheme='zcash', netloc='', path=addr, params='', query='&'.join(query), fragment='')
+    p = urllib.parse.ParseResult(scheme='komodo', netloc='', path=addr, params='', query='&'.join(query), fragment='')
     return urllib.parse.urlunparse(p)
 
 

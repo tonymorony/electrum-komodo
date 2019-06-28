@@ -1,14 +1,37 @@
 {
-    "BitcoinAverage": [
+    "AtomicExplorer": [
         "USD",
-        "EUR",
-        "PLN"
-    ],
-    "Bittrex": [
-        "BTC"
-    ],
-    "Poloniex": [
-        "BTC"
+        "EUR",       
+        "AUD",
+        "BRL",
+        "GBP",
+        "BGN",
+        "CAD",
+        "HRK",
+        "CZK",
+        "CNY",
+        "DKK",
+        "HKD",
+        "HUF",
+        "INR",
+        "IDR",
+        "ILS",
+        "JPY",
+        "KRW",
+        "MYR",
+        "MXN",
+        "NZD",
+        "NOK",
+        "PHP",
+        "PLN",
+        "RON",
+        "RUB",
+        "SGD",
+        "ZAR",
+        "SEK",
+        "CHF",
+        "THB",
+        "TRY"
     ],
     "CoinMarketCap": [
         "USD"
