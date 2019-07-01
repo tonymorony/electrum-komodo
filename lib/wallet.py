@@ -688,6 +688,9 @@ class Abstract_Wallet(PrintError):
             tx_height, value, is_cb = v
             prevout_hash, prevout_n = txo.split(':')
             tx = self.transactions.get(prevout_hash)
+            # weird bug, locktime is not read correctly until inputs method is called
+            # go figure?
+            tx.inputs()
 
             x = {
                 'address':address,
