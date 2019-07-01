@@ -181,12 +181,25 @@ def sha256(x):
     x = to_bytes(x, 'utf8')
     return bytes(hashlib.sha256(x).digest())
 
+def sha256_bytes_str(x):
+    x = to_bytes(x, 'utf8')
+    return hashlib.sha256(x).digest()
 
 def Hash(x):
     x = to_bytes(x, 'utf8')
     out = bytes(sha256(sha256(x)))
     return out
 
+def agama_seed_to_wif(seed):
+    bytes = list(sha256_bytes_str(seed))
+
+    # 3 bytes flip
+    bytes[0] &= 248
+    bytes[31] &= 127
+    bytes[31] |= 64
+
+    base58_wif = serialize_privkey_agama(bytearray(bytes))
+    return base58_wif
 
 hash_encode = lambda x: bh2u(x[::-1])
 hash_decode = lambda x: bfh(x)[::-1]
@@ -432,6 +445,12 @@ SCRIPT_TYPES = {
     'p2sh':5,
 }
 
+def serialize_privkey_agama(secret):
+    prefix = bytes([constants.net.WIF_PREFIX])
+    suffix = b'\01' # compressed
+    vchIn = prefix + secret + suffix
+    base58_wif = EncodeBase58Check(vchIn)
+    return base58_wif
 
 def serialize_privkey(secret, compressed, txin_type, internal_use=False):
     if internal_use:

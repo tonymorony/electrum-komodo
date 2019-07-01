@@ -91,6 +91,7 @@ class BaseWizard(object):
             ('standard',  _("Standard wallet")),
             ('multisig',  _("Multi-signature wallet")),
             ('imported',  _("Import Komodo addresses or private keys")),
+            ('agama',  _("Import Agama/BarderDEX seed"))
         ]
         choices = [pair for pair in wallet_kinds if pair[0] in wallet_types]
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.on_wallet_type)
@@ -103,6 +104,8 @@ class BaseWizard(object):
             action = 'choose_multisig'
         elif choice == 'imported':
             action = 'import_addresses_or_keys'
+        elif choice == 'agama':
+            action = 'import_agama_seed'
         self.run(action)
 
     def choose_multisig(self):
@@ -144,6 +147,14 @@ class BaseWizard(object):
         self.add_xpub_dialog(title=title, message=message, run_next=self.on_import,
                              is_valid=v, allow_multi=True)
 
+    def import_agama_seed(self):
+        v = lambda x: keystore.is_seed_list(x)
+        print('import_agama_seed', v)
+        title = _("Import Agama/BarderDEX Seed")
+        message = _("Enter an Agama or BarterDEX seed")
+        self.add_xpub_dialog(title=title, message=message, run_next=self.on_import,
+                             is_valid=v, allow_multi=True)
+
     def on_import(self, text):
         # create a temporary wallet and exploit that modifications
         # will be reflected on self.storage
@@ -156,6 +167,13 @@ class BaseWizard(object):
             self.storage.put('keystore', k.dump())
             w = Imported_Wallet(self.storage)
             for x in keystore.get_private_keys(text):
+                w.import_private_key(x, None)
+            self.keystores.append(w.keystore)
+        elif keystore.is_seed_list(text):
+            k = keystore.Imported_KeyStore({})
+            self.storage.put('keystore', k.dump())
+            w = Imported_Wallet(self.storage)
+            for x in keystore.get_private_keys_from_agama_seed(text):
                 w.import_private_key(x, None)
             self.keystores.append(w.keystore)
         else:
