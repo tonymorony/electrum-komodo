@@ -66,6 +66,7 @@ from . import paymentrequest
 from .paymentrequest import PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .paymentrequest import InvoiceStore
 from .contacts import Contacts
+from .komodo_interest import calcInterest
 
 TX_STATUS = [
     _('Unconfirmed'),
@@ -77,33 +78,6 @@ TX_STATUS = [
 TX_HEIGHT_LOCAL = -2
 TX_HEIGHT_UNCONF_PARENT = -1
 TX_HEIGHT_UNCONFIRMED = 0
-
-KOMODO_ENDOFERA = 7777777
-LOCKTIME_THRESHOLD = 500000000
-
-def calcInterest(locktime, value, height, inSats):
-    timestampDiff = math.floor(time.time()) - locktime - 777;
-    hoursPassed = math.floor(timestampDiff / 3600);
-    minutesPassed = math.floor((timestampDiff - (hoursPassed * 3600)) / 60);
-    secondsPassed = timestampDiff - (hoursPassed * 3600) - (minutesPassed * 60);
-    timestampDiffMinutes = timestampDiff / 60;
-    interest = 0;
-
-    if height < KOMODO_ENDOFERA and locktime >= LOCKTIME_THRESHOLD:
-        if timestampDiffMinutes >= 60:
-            if height >= 1000000 and timestampDiffMinutes > 31 * 24 * 60:
-                timestampDiffMinutes = 31 * 24 * 60
-            else:
-                if timestampDiffMinutes > 365 * 24 * 60:
-                    timestampDiffMinutes = 365 * 24 * 60
-
-        timestampDiffMinutes -= 59
-        interest = int(math.floor(value / 10512000) * timestampDiffMinutes)
-
-    if interest < 0:
-        interest = 0
-
-    return interest
 
 def relayfee(network):
     from .simple_config import FEERATE_DEFAULT_RELAY

@@ -135,7 +135,7 @@ class ElectrumGui:
                 c, u, x, interest =  self.wallet.get_balance()
                 msg = _("Balance")+": %f  "%(Decimal(c) / COIN)
                 if interest > 0:
-                    msg += _("Interest")+": %f  "%(Decimal(interest) / COIN)
+                    msg += _("Rewards")+": %f  "%(Decimal(interest) / COIN)
                 if u:
                     msg += "  [%f unconfirmed]"%(Decimal(u) / COIN)
                 if x:

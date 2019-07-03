@@ -1561,7 +1561,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         else:
             msg = [
                 _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
-                _("Interest") + ": " + self.format_amount_and_units(abs(fee)),
+                _("Rewards") + ": " + self.format_amount_and_units(abs(fee)),
             ]
 
         x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
