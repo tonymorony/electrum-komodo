@@ -586,7 +586,7 @@ class Network(util.DaemonThread):
     def process_responses(self, interface):
         responses = interface.get_responses()
         for request, response in responses:
-            print(response)
+            self.print_error(response)
             if request:
                 method, params, message_id = request
                 k = self.get_index(method, params)
@@ -717,17 +717,16 @@ class Network(util.DaemonThread):
         # todo: get tip first, then decide which checkpoint to use.
         self.add_recent_server(server)
         interface = Interface(server, socket)
-        interface.blockchain = None
+        interface.blockchain = self.blockchains[0] or None
         interface.tip_header = None
         interface.tip = 0
         interface.mode = 'default'
         interface.request = None
         self.interfaces[server] = interface
-        #self.queue_request('blockchain.headers.subscribe', [True], interface)
         self.queue_request('blockchain.headers.subscribe', [], interface)
         if server == self.default_server:
             self.switch_to_interface(server)
-        #self.notify('interfaces')
+        self.notify('interfaces')
 
     def maintain_sockets(self):
         '''Socket maintenance.'''
