@@ -32,8 +32,9 @@ from collections import defaultdict
 import threading
 import socket
 import json
-
 import socks
+import urllib
+
 from . import util
 from . import bitcoin
 from .bitcoin import *
@@ -226,6 +227,10 @@ class Network(util.DaemonThread):
         self.socket_queue = queue.Queue()
         self.start_network(deserialize_server(self.default_server)[2],
                            deserialize_proxy(self.config.get('proxy')))
+        self.is_downloading_checkpoints = False
+        self.downloaded_checkpoints_perc = 0
+        self.restart_required = False
+        self.num_blocks = -1
 
     def register_callback(self, callback, events):
         with self.lock:
@@ -284,7 +289,7 @@ class Network(util.DaemonThread):
         self.notify('status')
 
     def is_connected(self):
-        return self.interface is not None
+        return self.interface is not None or self.is_downloading_checkpoints
 
     def is_connecting(self):
         return self.connection_status == 'connecting'
@@ -985,17 +990,71 @@ class Network(util.DaemonThread):
     def init_headers_file(self):
         b = self.blockchains[0]
         filename = b.path()
-        len_checkpoints = len(constants.net.CHECKPOINTS)
-        length = HDR_LEN * len_checkpoints * CHUNK_LEN
-        if not os.path.exists(filename) or os.path.getsize(filename) < length:
-            with open(filename, 'wb') as f:
-                for i in range(len_checkpoints):
-                    for height, header_data in b.checkpoints[i][2]:
-                        f.seek(height*HDR_LEN)
-                        bin_header = bfh(header_data)
-                        f.write(bin_header)
+        filenameCP = filename.replace('blockchain_headers', 'checkpoints.json')
+        
+        if os.path.exists(filenameCP):
+            f = open(filenameCP, 'rb')
+            file_size = len(f.read())
+            self.print_error('local checkpoints.json size:', file_size)
+
+        if not os.path.exists(filenameCP) or file_size < constants.net.CHECKPOINTS_MIN_FSIZE:
+            site = urllib.request.urlopen(constants.net.CHECKPOINTS_URL)
+            meta = site.info()
+            self.print_error('remote checkpoints.json size ', meta['Content-Length'])
+
+            self.print_error('checkpoints.json doesn\'t exist')
+            self.print_error('filename')
+            self.print_error(filenameCP)
+            
+            self.is_downloading_checkpoints = True
+            self.set_status('syncing') # downloading?
+            t = threading.Thread(target = self.download_thread(filenameCP))
+            t.daemon = True
+            t.start()
+        else:
+            b = self.blockchains[0]
+            filename = b.path()
+            len_checkpoints = len(b.checkpoints)
+            length = HDR_LEN * len_checkpoints * CHUNK_LEN
+            if not os.path.exists(filename) or os.path.getsize(filename) < length:
+                with open(filename, 'wb') as f:
+                    for i in range(len_checkpoints):
+                        for height, header_data in b.checkpoints[i][2]:
+                            f.seek(height*HDR_LEN)
+                            bin_header = bfh(header_data)
+                            f.write(bin_header)
+            with b.lock:
+                b.update_size()
+
+    def dl_thread_cb(self, blocks, block_size, total_size):
+        self.set_status('syncing')
+        self.notify('status')
+        self.print_error('blocks downloaded', blocks)
+        self.print_error('block size KB', block_size / 1024)
+        self.print_error('total remote size MB ', total_size / 1024 / 1024)
+        self.print_error('total downloaded size MB ', blocks * block_size / 1024 / 1024)
+        self.print_error('total % ', blocks * block_size * 100 / total_size)
+
+        self.downloaded_checkpoints_perc = blocks * block_size * 100 / total_size
+
+        if self.downloaded_checkpoints_perc >= 100:
+            self.restart_required = True
+
+    def download_thread(self, filename):
+        try:
+            import urllib, socket
+            socket.setdefaulttimeout(30)
+            self.print_error('downloading ', constants.net.CHECKPOINTS_URL)
+            urllib.request.urlretrieve(constants.net.CHECKPOINTS_URL, filename, self.dl_thread_cb)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            self.print_error('download failed. creating file', filename)
+            open(filename, 'wb+').close()
+        b = self.blockchains[0]
         with b.lock:
             b.update_size()
+        self.set_status('syncing')
 
     def run(self):
         self.init_headers_file()
