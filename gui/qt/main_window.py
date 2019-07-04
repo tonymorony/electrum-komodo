@@ -727,6 +727,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             if not self.wallet.up_to_date or server_height == 0:
                 text = _("Synchronizing...")
                 icon = QIcon(":icons/status_waiting.png")
+                
+                if is not self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                    text = _("Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
+
             elif server_lag > 1:
                 text = _("Server is lagging ({} blocks)").format(server_lag)
                 icon = QIcon(":icons/status_lagging.png")
@@ -739,6 +743,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     text +=  " [%s unconfirmed]"%(self.format_amount(u, True).strip())
                 if x:
                     text +=  " [%s unmatured]"%(self.format_amount(x, True).strip())
+                if is not self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                    text += _(" |  Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
 
                 # append fiat balance and price
                 if self.fx.is_enabled():
