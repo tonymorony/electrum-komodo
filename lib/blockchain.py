@@ -140,7 +140,12 @@ class Blockchain(util.PrintError):
         self.config = config
         self.catch_up = None # interface catching up
         self.checkpoint = checkpoint
-        self.checkpoints = constants.net.CHECKPOINTS
+        try:
+            with open(os.path.join(util.get_headers_dir(self.config), 'checkpoints.json'), 'r') as f:
+                r = json.loads(f.read())
+        except:
+            r = constants.net.CHECKPOINTS
+        self.checkpoints = r
         self.parent_id = parent_id
         self.lock = threading.Lock()
         with self.lock:

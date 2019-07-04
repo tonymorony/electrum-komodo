@@ -728,7 +728,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 text = _("Synchronizing...")
                 icon = QIcon(":icons/status_waiting.png")
                 
-                if is not self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
                     text = _("Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
 
             elif server_lag > 1:
@@ -743,7 +743,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     text +=  " [%s unconfirmed]"%(self.format_amount(u, True).strip())
                 if x:
                     text +=  " [%s unmatured]"%(self.format_amount(x, True).strip())
-                if is not self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
                     text += _(" |  Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
 
                 # append fiat balance and price
@@ -754,6 +754,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     icon = QIcon(":icons/status_connected.png")
                 else:
                     icon = QIcon(":icons/status_connected_proxy.png")
+
+            if self.network.is_downloading_checkpoints and self.network.downloaded_checkpoints_perc < 100:
+                text = _("Downloading checkpoints data") + ": %.2f "%(self.network.downloaded_checkpoints_perc) + "%"
+                icon = QIcon(":icons/status_waiting.png")
+
+            if self.network.restart_required:
+                self.network.restart_required = False
+                self.network.is_downloading_checkpoints = False
+                self.show_message(_("Checkpoints data downloaded. Please restart the app."), title=_("Restart required"))
 
         else:
             text = _("Not connected")

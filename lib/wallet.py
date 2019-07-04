@@ -236,6 +236,8 @@ class Abstract_Wallet(PrintError):
 
         self.coin_price_cache = {}
 
+        self.syncronizedPerc = 0
+
     def diagnostic_name(self):
         return self.basename()
 
