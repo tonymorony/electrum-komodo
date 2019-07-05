@@ -20,7 +20,7 @@ class ElectrumGui:
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
         if not storage.file_exists():
-            print("Wallet not found. try 'electrum-zcash create'")
+            print("Wallet not found. try 'electrum-komodo create'")
             exit()
         if storage.is_encrypted():
             password = getpass.getpass('Password:', stream=None)
@@ -132,8 +132,10 @@ class ElectrumGui:
             if not self.wallet.up_to_date:
                 msg = _("Synchronizing...")
             else:
-                c, u, x =  self.wallet.get_balance()
+                c, u, x, interest =  self.wallet.get_balance()
                 msg = _("Balance")+": %f  "%(Decimal(c) / COIN)
+                if interest > 0:
+                    msg += _("Rewards")+": %f  "%(Decimal(interest) / COIN)
                 if u:
                     msg += "  [%f unconfirmed]"%(Decimal(u) / COIN)
                 if x:
@@ -320,7 +322,7 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_address(self.str_recipient):
-            self.show_message(_('Invalid Zcash address'))
+            self.show_message(_('Invalid Komodo address'))
             return
         try:
             amount = int(Decimal(self.str_amount) * COIN)

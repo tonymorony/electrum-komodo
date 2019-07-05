@@ -160,7 +160,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         if self.config.get("is_maximized"):
             self.showMaximized()
 
-        self.setWindowIcon(QIcon(":icons/electrum-zcash.png"))
+        self.setWindowIcon(QIcon(":icons/electrum-komodo.png"))
         self.init_menubar()
 
         wrtabs = weakref.proxy(tabs)
@@ -375,7 +375,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.setGeometry(100, 100, 840, 400)
 
     def watching_only_changed(self):
-        name = "Electrum-Zcash Testnet" if constants.net.TESTNET else "Electrum-Zcash"
+        name = "Electrum-Komodo Testnet" if constants.net.TESTNET else "Electrum-Komodo"
         title = '%s %s  -  %s' % (name, self.wallet.electrum_version,
                                         self.wallet.basename())
         extra = [self.wallet.storage.get('wallet_type', '?')]
@@ -422,7 +422,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 shutil.copy2(path, new_path)
                 self.show_message(_("A copy of your wallet file was created in")+" '%s'" % str(new_path), title=_("Wallet backup created"))
             except BaseException as reason:
-                self.show_critical(_("Electrum-Zcash was unable to copy your wallet file to the specified location.") + "\n" + str(reason), title=_("Unable to create backup"))
+                self.show_critical(_("Electrum-Komodo was unable to copy your wallet file to the specified location.") + "\n" + str(reason), title=_("Unable to create backup"))
 
     def update_recently_visited(self, filename):
         recent = self.config.get('recently_open', [])
@@ -521,7 +521,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         tools_menu = menubar.addMenu(_("&Tools"))
 
         # Settings / Preferences are all reserved keywords in macOS using this as work around
-        tools_menu.addAction(_("Electrum-Zcash preferences") if sys.platform == 'darwin' else _("Preferences"), self.settings_dialog)
+        tools_menu.addAction(_("Electrum-Komodo preferences") if sys.platform == 'darwin' else _("Preferences"), self.settings_dialog)
         tools_menu.addAction(_("&Network"), lambda: self.gui_object.show_network_dialog(self))
         tools_menu.addAction(_("&Plugins"), self.plugins_dialog)
         tools_menu.addSeparator()
@@ -541,9 +541,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         help_menu = menubar.addMenu(_("&Help"))
         help_menu.addAction(_("&About"), self.show_about)
-        #help_menu.addAction(_("&Official website"), lambda: webbrowser.open("https://github.com/zebra-lucky/electrum-zcash"))
+        #help_menu.addAction(_("&Official website"), lambda: webbrowser.open("https://github.com/komodoplatform/electrum-komodo"))
         help_menu.addSeparator()
-        #help_menu.addAction(_("&Documentation"), lambda: webbrowser.open("http://github.com/zebra-lucky/electrum-zcash")).setShortcut(QKeySequence.HelpContents)
+        #help_menu.addAction(_("&Documentation"), lambda: webbrowser.open("http://github.com/komodoplatform/electrum-komodo")).setShortcut(QKeySequence.HelpContents)
         #self._auto_crash_reports = QAction(_("&Automated Crash Reports"), self, checkable=True)
         #self._auto_crash_reports.setChecked(self.config.get("show_crash_reporter", default=False))
         #self._auto_crash_reports.triggered.connect(self.auto_crash_reports)
@@ -562,24 +562,24 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = self.network.get_donation_address()
         if d:
             host = self.network.get_parameters()[0]
-            self.pay_to_URI('zcash:%s?message=donation for %s'%(d, host))
+            self.pay_to_URI('komodo:%s?message=donation for %s'%(d, host))
         else:
             self.show_error(_('No donation address for this server'))
 
     def show_about(self):
-        QMessageBox.about(self, "Electrum-Zcash",
+        QMessageBox.about(self, "Electrum-Komodo",
             _("Version")+" %s" % (self.wallet.electrum_version) + "\n\n" +
-                _("Electrum-Zcash focus is speed, with low resource usage and simplifying Bitcoin. You do not need to perform regular backups, because your wallet can be recovered from a secret phrase that you can memorize or write on paper. Startup times are instant because it operates in conjunction with high-performance servers that handle the most complicated parts of the Bitcoin system."  + "\n\n" +
+                _("Electrum-Komodo focus is speed, with low resource usage and simplifying Bitcoin. You do not need to perform regular backups, because your wallet can be recovered from a secret phrase that you can memorize or write on paper. Startup times are instant because it operates in conjunction with high-performance servers that handle the most complicated parts of the Bitcoin system."  + "\n\n" +
                 _("Uses icons from the Icons8 icon pack (icons8.com).")))
 
     def show_report_bug(self):
         msg = ' '.join([
             _("Please report any bugs as issues on github:<br/>"),
-            "<a href=\"https://github.com/zebra-lucky/electrum-zcash/issues\">https://github.com/zebra-lucky/electrum-zcash/issues</a><br/><br/>",
-            _("Before reporting a bug, upgrade to the most recent version of Electrum-Zcash (latest release or git HEAD), and include the version number in your report."),
+            "<a href=\"https://github.com/komodoplatform/electrum-komodo/issues\">https://github.com/komodoplatform/electrum-komodo/issues</a><br/><br/>",
+            _("Before reporting a bug, upgrade to the most recent version of Electrum-Komodo (latest release or git HEAD), and include the version number in your report."),
             _("Try to explain not only what the bug is, but how it occurs.")
          ])
-        self.show_message(msg, title="Electrum-Zcash - " + _("Reporting Bugs"))
+        self.show_message(msg, title="Electrum-Komodo - " + _("Reporting Bugs"))
 
     def notify_transactions(self):
         if not self.network or not self.network.is_connected():
@@ -609,9 +609,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         if self.tray:
             try:
                 # this requires Qt 5.9
-                self.tray.showMessage("Electrum-Zcash", message, QIcon(":icons/electrum_dark_icon"), 20000)
+                self.tray.showMessage("Electrum-Komodo", message, QIcon(":icons/electrum_dark_icon"), 20000)
             except TypeError:
-                self.tray.showMessage("Electrum-Zcash", message, QSystemTrayIcon.Information, 20000)
+                self.tray.showMessage("Electrum-Komodo", message, QSystemTrayIcon.Information, 20000)
 
 
 
@@ -666,11 +666,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def base_unit(self):
         assert self.decimal_point in [2, 5, 8]
         if self.decimal_point == 2:
-            return 'uRICK'
+            return 'u' + constants.net.COIN
         if self.decimal_point == 5:
-            return 'mRICK'
+            return 'm' + constants.net.COIN
         if self.decimal_point == 8:
-            return 'RICK'
+            return constants.net.COIN
         raise Exception('Unknown base unit')
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
@@ -727,16 +727,24 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             if not self.wallet.up_to_date or server_height == 0:
                 text = _("Synchronizing...")
                 icon = QIcon(":icons/status_waiting.png")
+                
+                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                    text = _("Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
+
             elif server_lag > 1:
                 text = _("Server is lagging ({} blocks)").format(server_lag)
                 icon = QIcon(":icons/status_lagging.png")
             else:
-                c, u, x = self.wallet.get_balance()
+                c, u, x, interest = self.wallet.get_balance()
                 text =  _("Balance" ) + ": %s "%(self.format_amount_and_units(c))
+                if interest > 0:
+                    text +=  _(" |  Interest" ) + ": %s "%(self.format_amount_and_units(interest))
                 if u:
                     text +=  " [%s unconfirmed]"%(self.format_amount(u, True).strip())
                 if x:
                     text +=  " [%s unmatured]"%(self.format_amount(x, True).strip())
+                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                    text += _(" |  Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
 
                 # append fiat balance and price
                 if self.fx.is_enabled():
@@ -746,6 +754,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     icon = QIcon(":icons/status_connected.png")
                 else:
                     icon = QIcon(":icons/status_connected_proxy.png")
+
+            if self.network.is_downloading_checkpoints and self.network.downloaded_checkpoints_perc < 100:
+                text = _("Downloading checkpoints data") + ": %.2f "%(self.network.downloaded_checkpoints_perc) + "%"
+                icon = QIcon(":icons/status_waiting.png")
+
+            if self.network.restart_required:
+                self.network.restart_required = False
+                self.network.is_downloading_checkpoints = False
+                self.show_message(_("Checkpoints data downloaded. Please restart the app."), title=_("Restart required"))
+
         else:
             text = _("Not connected")
             icon = QIcon(":icons/status_disconnected.png")
@@ -829,7 +847,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             _('Expiration date of your request.'),
             _('This information is seen by the recipient if you send them a signed payment request.'),
             _('Expired requests have to be deleted manually from your list, in order to free the corresponding Zcash addresses.'),
-            _('The Zcash address never expires and will always be part of this electrum-zcash wallet.'),
+            _('The Zcash address never expires and will always be part of this electrum-komodo wallet.'),
         ])
         grid.addWidget(HelpLabel(_('Request expires'), msg), 3, 0)
         grid.addWidget(self.expires_combo, 3, 1)
@@ -969,6 +987,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.show_message(_("Request saved successfully"))
             self.saved = True
 
+    def get_self_address(self):
+        addr = self.wallet.get_unused_address() or self.wallet.get_receiving_address()
+        self.payto_e.setText(addr)
+
     def new_payment_request(self):
         addr = self.wallet.get_unused_address()
         if addr is None:
@@ -1054,6 +1076,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         from .paytoedit import PayToEdit
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
         self.payto_e = PayToEdit(self)
+        self.payto_e.setFixedWidth(360);
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Zcash address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Zcash address)')
         payto_label = HelpLabel(_('Pay to'), msg)
@@ -1064,6 +1087,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         completer.setCaseSensitivity(False)
         self.payto_e.set_completer(completer)
         completer.setModel(self.completions)
+        
+        self.self_button = EnterButton(_("Self"), self.get_self_address)
+        self.self_button.setFixedWidth(100)
+        grid.addWidget(self.self_button, 1, 5)
 
         msg = _('Description of the transaction (not mandatory).') + '\n\n'\
               + _('The description is not sent to the recipient of the funds. It is stored in your wallet file, and displayed in the \'History\' tab.')
@@ -1163,7 +1190,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         def feerounding_onclick():
             text = (self.feerounding_text + '\n\n' +
-                    _('To somewhat protect your privacy, Electrum-Zcash tries to create change with similar precision to other outputs.') + ' ' +
+                    _('To somewhat protect your privacy, Electrum-Komodo tries to create change with similar precision to other outputs.') + ' ' +
                     _('At most 100 satoshis might be lost due to this rounding.') + ' ' +
                     _("You can disable this setting in '{}'.").format(_('Preferences')) + '\n' +
                     _('Also, dust is not kept as change, but added to the fee.'))
@@ -1525,7 +1552,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         amount = tx.output_value() if self.is_max else sum(map(lambda x:x[2], outputs))
         fee = tx.get_fee()
 
-        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000 and fee > 0:
             self.show_error('\n'.join([
                 _("This transaction requires a higher fee, or it will not be propagated by your current server"),
                 _("Try to raise your transaction fee, or use a server with a lower relay fee.")
@@ -1541,10 +1568,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             return
 
         # confirmation dialog
-        msg = [
-            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
-            _("Mining fee") + ": " + self.format_amount_and_units(fee),
-        ]
+        if fee > 0:
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+                _("Mining fee") + ": " + self.format_amount_and_units(fee),
+            ]
+        else:
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+                _("Rewards") + ": " + self.format_amount_and_units(abs(fee)),
+            ]
 
         x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
         if x_fee:
@@ -2310,7 +2343,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             tx = tx_from_str(txt)
             return Transaction(tx)
         except BaseException as e:
-            self.show_critical(_("Electrum-Zcash was unable to parse your transaction") + ":\n" + str(e))
+            self.show_critical(_("Electrum-Komodo was unable to parse your transaction") + ":\n" + str(e))
             return
 
     def read_tx_from_qrcode(self):
@@ -2345,7 +2378,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             with open(fileName, "r") as f:
                 file_content = f.read()
         except (ValueError, IOError, os.error) as reason:
-            self.show_critical(_("Electrum-Zcash was unable to open your transaction file") + "\n" + str(reason), title=_("Unable to read file or no transaction found"))
+            self.show_critical(_("Electrum-Komodo was unable to open your transaction file") + "\n" + str(reason), title=_("Unable to read file or no transaction found"))
             return
         return self.tx_from_text(file_content)
 
@@ -2398,7 +2431,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         e.setReadOnly(True)
         vbox.addWidget(e)
 
-        defaultname = 'electrum-zcash-private-keys.csv'
+        defaultname = 'electrum-komodo-private-keys.csv'
         select_msg = _('Select file to export your private keys to')
         hbox, filename_e, csv_button = filename_field(self, self.config, defaultname, select_msg)
         vbox.addLayout(hbox)
@@ -2456,7 +2489,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.do_export_privkeys(filename, private_keys, csv_button.isChecked())
         except (IOError, os.error) as reason:
             txt = "\n".join([
-                _("Electrum-Zcash was unable to produce a private key-export."),
+                _("Electrum-Komodo was unable to produce a private key-export."),
                 str(reason)
             ])
             self.show_critical(txt, title=_("Unable to create csv"))
@@ -2720,9 +2753,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         SSL_id_e.setReadOnly(True)
         id_widgets.append((SSL_id_label, SSL_id_e))
 
-        units = ['RICK', 'mRICK', 'uRICK']
+        units = [constants.net.COIN, 'm' + constants.net.COIN, 'u' + constants.net.COIN]
         msg = (_('Base unit of your wallet.')
-               + '\n1 RICK = 1000 mRICK. 1 mRICK = 1000 uRICK.\n'
+               + '\n1 ' + constants.net.COIN + ' = 1000 m' + constants.net.COIN + '. 1 m' + constants.net.COIN + ' = 1000 u' + constants.net.COIN + '.\n'
                + _('This setting affects the Send tab, and all balance related fields.'))
         unit_label = HelpLabel(_('Base unit') + ':', msg)
         unit_combo = QComboBox()
@@ -2734,11 +2767,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 return
             edits = self.amount_e, self.fee_e, self.receive_amount_e
             amounts = [edit.get_amount() for edit in edits]
-            if unit_result == 'RICK':
+            if unit_result == constants.net.COIN:
                 self.decimal_point = 8
-            elif unit_result == 'mRICK':
+            elif unit_result == 'm' + constants.net.COIN:
                 self.decimal_point = 5
-            elif unit_result == 'uRICK':
+            elif unit_result == 'u' + constants.net.COIN:
                 self.decimal_point = 2
             else:
                 raise Exception('Unknown base unit')
@@ -2986,7 +3019,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         run_hook('close_settings_dialog')
         if self.need_restart:
-            self.show_warning(_('Please restart Electrum-Zcash to activate the new GUI settings'), title=_('Success'))
+            self.show_warning(_('Please restart Electrum-Komodo to activate the new GUI settings'), title=_('Success'))
 
 
     def closeEvent(self, event):
@@ -3013,7 +3046,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.gui_object.close_window(self)
 
     def plugins_dialog(self):
-        self.pluginsdialog = d = WindowModalDialog(self, _('Electrum-Zcash Plugins'))
+        self.pluginsdialog = d = WindowModalDialog(self, _('Electrum-Komodo Plugins'))
 
         plugins = self.gui_object.plugins
 

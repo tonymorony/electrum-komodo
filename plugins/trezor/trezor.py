@@ -11,7 +11,6 @@ from electrum_zcash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 
 from ..hw_wallet import HW_PluginBase
 
-
 # TREZOR initialization methods
 TIM_NEW, TIM_RECOVER, TIM_MNEMONIC, TIM_PRIVKEY = range(0, 4)
 
@@ -163,7 +162,7 @@ class TrezorPlugin(HW_PluginBase):
         return client
 
     def get_coin_name(self):
-        return "ZcashTestnet" if constants.net.TESTNET else "Zcash"
+        return "KomodoTestnet" if constants.net.TESTNET else "Komodo"
 
     def initialize_device(self, device_id, wizard, handler):
         # Initialization method

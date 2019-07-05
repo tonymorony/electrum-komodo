@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QLineEdit, QStyle, QStyleOptionFrame)
 
 from decimal import Decimal
 from electrum_zcash.util import format_satoshis_plain
-
+from electrum_zcash import constants
 
 class MyLineEdit(QLineEdit):
     frozen = pyqtSignal()
@@ -82,11 +82,11 @@ class BTCAmountEdit(AmountEdit):
     def _base_unit(self):
         p = self.decimal_point()
         if p == 8:
-            return 'RICK'
+            return constants.net.COIN
         if p == 5:
-            return 'mRICK'
+            return 'm' + constants.net.COIN
         if p == 2:
-            return 'uRICK'
+            return 'u' + constants.net.COIN
         raise Exception('Unknown base unit')
 
     def get_amount(self):
