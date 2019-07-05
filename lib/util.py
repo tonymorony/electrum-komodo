@@ -31,7 +31,7 @@ import threading
 import hmac
 
 from .i18n import _
-
+from electrum_zcash import constants
 
 import urllib.request, urllib.parse, urllib.error
 import queue
@@ -40,7 +40,7 @@ def inv_dict(d):
     return {v: k for k, v in d.items()}
 
 
-base_units = {'KMD':8, 'mKMD':5, 'uKMD':2}
+base_units = {constants.net.COIN:8, 'm'+constants.net.COIN:5, 'u'+constants.net.COIN:2}
 
 def normalize_version(v):
     return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]

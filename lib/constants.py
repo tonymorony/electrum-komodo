@@ -49,6 +49,7 @@ class BitcoinMainnet:
     DEFAULT_PORTS = {'t': '10001', 's': '10001'}
     DEFAULT_SERVERS = read_json('servers.json', {})
     CHECKPOINTS = read_json('checkpoints.json', [])
+    COIN = "KMD"
 
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv

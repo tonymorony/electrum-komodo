@@ -666,11 +666,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def base_unit(self):
         assert self.decimal_point in [2, 5, 8]
         if self.decimal_point == 2:
-            return 'uKMD'
+            return 'u' + constants.net.COIN
         if self.decimal_point == 5:
-            return 'mKMD'
+            return 'm' + constants.net.COIN
         if self.decimal_point == 8:
-            return 'KMD'
+            return constants.net.COIN
         raise Exception('Unknown base unit')
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
@@ -2753,9 +2753,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         SSL_id_e.setReadOnly(True)
         id_widgets.append((SSL_id_label, SSL_id_e))
 
-        units = ['KMD', 'mKMD', 'uKMD']
+        units = [constants.net.COIN, 'm' + constants.net.COIN, 'u' + constants.net.COIN]
         msg = (_('Base unit of your wallet.')
-               + '\n1 KMD = 1000 mKMD. 1 mKMD = 1000 uKMD.\n'
+               + '\n1 ' + constants.net.COIN + ' = 1000 m' + constants.net.COIN + '. 1 m' + constants.net.COIN + ' = 1000 u' + constants.net.COIN + '.\n'
                + _('This setting affects the Send tab, and all balance related fields.'))
         unit_label = HelpLabel(_('Base unit') + ':', msg)
         unit_combo = QComboBox()
@@ -2767,11 +2767,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 return
             edits = self.amount_e, self.fee_e, self.receive_amount_e
             amounts = [edit.get_amount() for edit in edits]
-            if unit_result == 'KMD':
+            if unit_result == constants.net.COIN:
                 self.decimal_point = 8
-            elif unit_result == 'mKMD':
+            elif unit_result == 'm' + constants.net.COIN:
                 self.decimal_point = 5
-            elif unit_result == 'uKMD':
+            elif unit_result == 'u' + constants.net.COIN:
                 self.decimal_point = 2
             else:
                 raise Exception('Unknown base unit')
