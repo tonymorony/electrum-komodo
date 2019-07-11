@@ -58,7 +58,7 @@ Check out the code from GitHub::
 
 Run install (this should install dependencies)::
 
-    pip3 install .[full]
+    pip3 install .[full] or pip3 install .[full] --ignore-installed
 
 Compile the icons file for Qt::
 

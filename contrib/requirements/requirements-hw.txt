@@ -1,4 +1,4 @@
 Cython>=0.27
-trezor>=0.9.0
+trezor @ git+http://github.com/KomodoPlatform/python-trezor@signing-fix#egg=trezor
 keepkey
 btchip-python
