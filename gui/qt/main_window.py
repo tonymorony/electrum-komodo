@@ -1259,7 +1259,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 amt_color, fee_color = ColorScheme.RED, ColorScheme.RED
                 feerate_color = ColorScheme.RED
                 text = _( "Not enough funds" )
-                c, u, x = self.wallet.get_frozen_balance()
+                c, u, x, interest = self.wallet.get_frozen_balance()
                 if c+u+x:
                     text += ' (' + self.format_amount(c+u+x).strip() + ' ' + self.base_unit() + ' ' +_("are frozen") + ')'
 
@@ -1667,7 +1667,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     self.invoice_list.update()
                     self.do_clear()
                 else:
-                    parent.show_error(msg)
+                    # TODO: fix trezor sig check
+                    if len(msg) == 64 + 7:
+                        parent.show_message(_('Payment sent.') + '\n' + msg[7:71])
+                        self.invoice_list.update()
+                        self.do_clear()
+                    else:
+                        parent.show_error(msg)
 
         WaitingDialog(self, _('Broadcasting transaction...'),
                       broadcast_thread, broadcast_done, self.on_error)
