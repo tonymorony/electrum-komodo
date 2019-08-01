@@ -149,7 +149,6 @@ class BaseWizard(object):
 
     def import_agama_seed(self):
         v = lambda x: keystore.is_seed_list(x)
-        print('import_agama_seed', v)
         title = _("Import Agama/BarderDEX Seed")
         message = _("Enter an Agama or BarterDEX seed")
         self.add_xpub_dialog(title=title, message=message, run_next=self.on_import,
