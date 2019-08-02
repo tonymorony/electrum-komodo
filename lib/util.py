@@ -666,7 +666,7 @@ class SocketPipe:
         self.recv_time = time.time()
 
     def set_timeout(self, t):
-        self.socket.settimeout(t)
+        self.socket.settimeout(0.2)
 
     def idle_time(self):
         return time.time() - self.recv_time
@@ -677,7 +677,7 @@ class SocketPipe:
             if response is not None:
                 return response
             try:
-                data = self.socket.recv(1024)
+                data = self.socket.recv(10485760)
             except socket.timeout:
                 raise timeout
             except ssl.SSLError:
@@ -726,7 +726,7 @@ class QueuePipe:
     def __init__(self, send_queue=None, get_queue=None):
         self.send_queue = send_queue if send_queue else queue.Queue()
         self.get_queue = get_queue if get_queue else queue.Queue()
-        self.set_timeout(0.1)
+        self.set_timeout(0.2)
 
     def get(self):
         try:
@@ -745,7 +745,7 @@ class QueuePipe:
         return responses
 
     def set_timeout(self, t):
-        self.timeout = t
+        self.timeout = 0.2
 
     def send(self, request):
         self.send_queue.put(request)

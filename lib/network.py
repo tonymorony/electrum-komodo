@@ -324,8 +324,8 @@ class Network(util.DaemonThread):
         self.queue_request('server.banner', [])
         self.queue_request('server.donation_address', [])
         self.queue_request('server.peers.subscribe', [])
-        self.request_fee_estimates()
-        self.queue_request('blockchain.relayfee', [])
+        # self.request_fee_estimates()
+        # self.queue_request('blockchain.relayfee', [])
         for h in list(self.subscribed_addresses):
             self.queue_request('blockchain.scripthash.subscribe', [h])
 
@@ -591,7 +591,7 @@ class Network(util.DaemonThread):
     def process_responses(self, interface):
         responses = interface.get_responses()
         for request, response in responses:
-            self.print_error(response)
+            # self.print_error(response)
             if request:
                 method, params, message_id = request
                 k = self.get_index(method, params)
@@ -762,7 +762,7 @@ class Network(util.DaemonThread):
                 self.print_error('network: retrying connections')
                 self.disconnected_servers = set([])
                 self.nodes_retry_time = now
-
+                
         # main interface
         if not self.is_connected():
             if self.auto_connect:
@@ -775,9 +775,6 @@ class Network(util.DaemonThread):
                         self.server_retry_time = now
                 else:
                     self.switch_to_interface(self.default_server)
-        else:
-            if self.config.is_fee_estimates_update_required():
-                self.request_fee_estimates()
 
     def request_chunk(self, interface, index):
         if index in self.requested_chunks:
@@ -828,7 +825,7 @@ class Network(util.DaemonThread):
         hex_header = result.get('hex', None)
 
         if interface.request != height:
-            interface.print_error("unsolicited header",interface.request, height)
+            interface.print_error("unsolicited header", interface.request, height)
             self.connection_down(interface.server)
             return
 
