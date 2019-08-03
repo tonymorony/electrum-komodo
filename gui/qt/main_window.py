@@ -765,7 +765,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 self.network.restart_required = False
                 self.network.is_downloading_checkpoints = False
                 self.show_message(_("Checkpoints data downloaded. Please restart the app."), title=_("Restart required"))
-
+            
+            if self.network.sync_stalled_restart_required:
+                self.network.sync_stalled_restart_required = False
+                self.show_message(_("Servers are rejecting requests due to excessive resource usage. Please restart the app."), title=_("Restart required"))
         else:
             text = _("Not connected")
             icon = QIcon(":icons/status_disconnected.png")
