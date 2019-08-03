@@ -677,7 +677,7 @@ class SocketPipe:
             if response is not None:
                 return response
             try:
-                data = self.socket.recv(10485760)
+                data = self.socket.recv(1024)
             except socket.timeout:
                 raise timeout
             except ssl.SSLError:

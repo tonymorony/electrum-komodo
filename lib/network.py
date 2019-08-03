@@ -591,9 +591,10 @@ class Network(util.DaemonThread):
     def process_responses(self, interface):
         responses = interface.get_responses()
         for request, response in responses:
-            # self.print_error(response)
             if request:
                 method, params, message_id = request
+                if (method != 'blockchain.block.headers'):
+                    self.print_error(response)
                 k = self.get_index(method, params)
                 # client requests go through self.send() with a
                 # callback, are only sent to the current interface,
