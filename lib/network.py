@@ -827,8 +827,8 @@ class Network(util.DaemonThread):
 
         if interface.request != height:
             interface.print_error("unsolicited header", interface.request, height)
-            self.connection_down(interface.server)
-            return
+            # self.connection_down(interface.server)
+            # return
 
         if not hex_header:
             interface.print_error(response)
@@ -942,7 +942,24 @@ class Network(util.DaemonThread):
                 self.notify('updated')
 
         else:
-            raise Exception(interface.mode)
+            can_connect = interface.blockchain.can_connect(header)
+            if can_connect:
+                interface.blockchain.save_header(header)
+                next_height = height + 1 if height < interface.tip else None
+            else:
+                # go back
+                interface.print_error("cannot connect", height)
+                interface.mode = 'backward'
+                interface.bad = height
+                interface.bad_header = header
+                next_height = height - 1
+
+            if next_height is None:
+                # exit catch_up state
+                interface.print_error('catch up done', interface.blockchain.height())
+                interface.blockchain.catch_up = None
+                self.switch_lagging_interface()
+                self.notify('updated')
         # If not finished, get the next header
         interface.request = None
         if next_height:
