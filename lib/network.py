@@ -230,6 +230,7 @@ class Network(util.DaemonThread):
         self.is_downloading_checkpoints = False
         self.downloaded_checkpoints_perc = 0
         self.restart_required = False
+        self.sync_stalled_restart_required = False
         self.num_blocks = -1
 
     def register_callback(self, callback, events):
@@ -593,7 +594,7 @@ class Network(util.DaemonThread):
         for request, response in responses:
             if request:
                 method, params, message_id = request
-                if (method != 'blockchain.block.headers'):
+                if method != 'blockchain.block.headers':
                     self.print_error(response)
                 k = self.get_index(method, params)
                 # client requests go through self.send() with a
@@ -617,7 +618,10 @@ class Network(util.DaemonThread):
                     self.subscribed_addresses.add(params[0])
             else:
                 if not response:  # Closed remotely / misbehaving
+                    # on average a non-stop sync of 240000 blocks in chunks are triggering "excessive resource usage" error
+                    # that's about 5+ months worth of blocks
                     self.connection_down(interface.server)
+                    self.sync_stalled_restart_required = True
                     break
                 # Rewrite response shape to match subscription request response
                 method = response.get('method')
@@ -750,7 +754,8 @@ class Network(util.DaemonThread):
         # must use copy of values
         for interface in list(self.interfaces.values()):
             if interface.has_timed_out():
-                self.connection_down(interface.server)
+                self.print_error('connection timed out, maintain it further')
+                # self.connection_down(interface.server)
             elif interface.ping_required():
                 params = [ELECTRUM_VERSION, PROTOCOL_VERSION]
                 self.queue_request('server.version', params, interface)

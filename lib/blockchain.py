@@ -317,7 +317,8 @@ class Blockchain(util.PrintError):
         return deserialize_header(h, height)
 
     def get_hash(self, height):
-        self.print_error('get_hash ht', height)
+        if height > 0:
+            self.print_error('get_hash ht', height)
         
         if height == -1:
             return '0000000000000000000000000000000000000000000000000000000000000000'
