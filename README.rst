@@ -59,6 +59,9 @@ Check out the code from GitHub::
 Run install (this should install dependencies)::
 
     pip3 install .[full] or pip3 install .[full] --ignore-installed
+    
+Note for Trezor owners::
+    In certain cases pip3 install might break trezorctl. In order to fix that run pip3 uninstall trezor followed by pip3 install trezor-komodo.
 
 Compile the icons file for Qt::
 

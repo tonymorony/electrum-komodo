@@ -33,7 +33,7 @@ from . import constants
 from .bitcoin import *
 
 HDR_LEN = 1487
-CHUNK_LEN = 200
+CHUNK_LEN = 330
 
 MAX_TARGET = 0x0007FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 POW_AVERAGING_WINDOW = 17
@@ -317,16 +317,20 @@ class Blockchain(util.PrintError):
         return deserialize_header(h, height)
 
     def get_hash(self, height):
+        if height > 0:
+            self.print_error('get_hash ht', height)
+        
         if height == -1:
             return '0000000000000000000000000000000000000000000000000000000000000000'
         elif height == 0:
             return constants.net.GENESIS
         elif height < len(self.checkpoints) * CHUNK_LEN - TARGET_CALC_BLOCKS:
-            assert (height+1) % CHUNK_LEN == 0, height
             index = height // CHUNK_LEN
             h, t, extra_headers = self.checkpoints[index]
-            return h
+            self.print_error('get_hash checkpoints', hash_header(self.read_header(height)))
+            return h;
         else:
+            self.print_error('get_hash hash_header', hash_header(self.read_header(height)))
             return hash_header(self.read_header(height))
 
     def get_median_time(self, height, chunk_headers=None):

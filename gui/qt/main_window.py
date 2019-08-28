@@ -743,13 +743,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     text +=  " [%s unconfirmed]"%(self.format_amount(u, True).strip())
                 if x:
                     text +=  " [%s unmatured]"%(self.format_amount(x, True).strip())
-                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
-                    text += _(" |  Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
 
                 # append fiat balance and price
                 if self.fx.is_enabled():
                     text += self.fx.get_fiat_status_text(c + u + x,
                         self.base_unit(), self.get_decimal_point()) or ''
+
+                if self.network.is_downloading_checkpoints == False and self.wallet.syncronizedPerc > 0 and self.wallet.syncronizedPerc < 100:
+                    text += _(" |  Synced" ) + ": %.2f "%(self.wallet.syncronizedPerc) + "%"
+
                 if not self.network.proxy:
                     icon = QIcon(":icons/status_connected.png")
                 else:
@@ -763,7 +765,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 self.network.restart_required = False
                 self.network.is_downloading_checkpoints = False
                 self.show_message(_("Checkpoints data downloaded. Please restart the app."), title=_("Restart required"))
-
+            
+            if self.network.sync_stalled_restart_required:
+                self.network.sync_stalled_restart_required = False
+                self.show_message(_("Servers are rejecting requests due to excessive resource usage. Please restart the app."), title=_("Restart required"))
         else:
             text = _("Not connected")
             icon = QIcon(":icons/status_disconnected.png")

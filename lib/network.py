@@ -230,6 +230,7 @@ class Network(util.DaemonThread):
         self.is_downloading_checkpoints = False
         self.downloaded_checkpoints_perc = 0
         self.restart_required = False
+        self.sync_stalled_restart_required = False
         self.num_blocks = -1
 
     def register_callback(self, callback, events):
@@ -324,8 +325,8 @@ class Network(util.DaemonThread):
         self.queue_request('server.banner', [])
         self.queue_request('server.donation_address', [])
         self.queue_request('server.peers.subscribe', [])
-        self.request_fee_estimates()
-        self.queue_request('blockchain.relayfee', [])
+        # self.request_fee_estimates()
+        # self.queue_request('blockchain.relayfee', [])
         for h in list(self.subscribed_addresses):
             self.queue_request('blockchain.scripthash.subscribe', [h])
 
@@ -591,9 +592,10 @@ class Network(util.DaemonThread):
     def process_responses(self, interface):
         responses = interface.get_responses()
         for request, response in responses:
-            self.print_error(response)
             if request:
                 method, params, message_id = request
+                if method != 'blockchain.block.headers':
+                    self.print_error(response)
                 k = self.get_index(method, params)
                 # client requests go through self.send() with a
                 # callback, are only sent to the current interface,
@@ -749,7 +751,8 @@ class Network(util.DaemonThread):
         # must use copy of values
         for interface in list(self.interfaces.values()):
             if interface.has_timed_out():
-                self.connection_down(interface.server)
+                self.print_error('connection timed out, maintain it further')
+                # self.connection_down(interface.server)
             elif interface.ping_required():
                 params = [ELECTRUM_VERSION, PROTOCOL_VERSION]
                 self.queue_request('server.version', params, interface)
@@ -762,7 +765,7 @@ class Network(util.DaemonThread):
                 self.print_error('network: retrying connections')
                 self.disconnected_servers = set([])
                 self.nodes_retry_time = now
-
+                
         # main interface
         if not self.is_connected():
             if self.auto_connect:
@@ -775,9 +778,6 @@ class Network(util.DaemonThread):
                         self.server_retry_time = now
                 else:
                     self.switch_to_interface(self.default_server)
-        else:
-            if self.config.is_fee_estimates_update_required():
-                self.request_fee_estimates()
 
     def request_chunk(self, interface, index):
         if index in self.requested_chunks:
@@ -793,6 +793,10 @@ class Network(util.DaemonThread):
         result = response.get('result')
         blockchain = interface.blockchain
         if result is None or error is not None:
+            if error == {'code': -101, 'message': 'excessive resource usage'}:
+                # on average a non-stop sync of 240000 blocks in chunks are triggering "excessive resource usage" error
+                # that's about 5+ months worth of blocks
+                self.sync_stalled_restart_required = True
             interface.print_error(error or 'bad response')
             return
         index = height // CHUNK_LEN
@@ -828,9 +832,9 @@ class Network(util.DaemonThread):
         hex_header = result.get('hex', None)
 
         if interface.request != height:
-            interface.print_error("unsolicited header",interface.request, height)
-            self.connection_down(interface.server)
-            return
+            interface.print_error("unsolicited header", interface.request, height)
+            # self.connection_down(interface.server)
+            # return
 
         if not hex_header:
             interface.print_error(response)
@@ -944,7 +948,24 @@ class Network(util.DaemonThread):
                 self.notify('updated')
 
         else:
-            raise Exception(interface.mode)
+            can_connect = interface.blockchain.can_connect(header)
+            if can_connect:
+                interface.blockchain.save_header(header)
+                next_height = height + 1 if height < interface.tip else None
+            else:
+                # go back
+                interface.print_error("cannot connect", height)
+                interface.mode = 'backward'
+                interface.bad = height
+                interface.bad_header = header
+                next_height = height - 1
+
+            if next_height is None:
+                # exit catch_up state
+                interface.print_error('catch up done', interface.blockchain.height())
+                interface.blockchain.catch_up = None
+                self.switch_lagging_interface()
+                self.notify('updated')
         # If not finished, get the next header
         interface.request = None
         if next_height:
