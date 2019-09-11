@@ -618,10 +618,7 @@ class Network(util.DaemonThread):
                     self.subscribed_addresses.add(params[0])
             else:
                 if not response:  # Closed remotely / misbehaving
-                    # on average a non-stop sync of 240000 blocks in chunks are triggering "excessive resource usage" error
-                    # that's about 5+ months worth of blocks
                     self.connection_down(interface.server)
-                    self.sync_stalled_restart_required = True
                     break
                 # Rewrite response shape to match subscription request response
                 method = response.get('method')
@@ -796,6 +793,10 @@ class Network(util.DaemonThread):
         result = response.get('result')
         blockchain = interface.blockchain
         if result is None or error is not None:
+            if error == {'code': -101, 'message': 'excessive resource usage'}:
+                # on average a non-stop sync of 240000 blocks in chunks are triggering "excessive resource usage" error
+                # that's about 5+ months worth of blocks
+                self.sync_stalled_restart_required = True
             interface.print_error(error or 'bad response')
             return
         index = height // CHUNK_LEN
