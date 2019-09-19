@@ -1,0 +1,23 @@
+
+# If you want Electrum to appear in a Linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install electrum-ltc.desktop
+
+[Desktop Entry]
+Comment=KomodoPlatform wallet
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum-zcash %u"
+GenericName[en_US]=Electrum Komodo Wallet
+GenericName=Komodo Wallet
+Icon=electrum-komodo
+Name[en_US]=Electrum Komodo Wallet
+Name=Electrum Komodo Wallet
+Categories=Finance;Network;
+StartupNotify=true
+StartupWMClass=electrum-zcash
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/zcash;
+Actions=Testnet;
+
+[Desktop Action Testnet]
+Exec=sh -c "PATH=\"\\$HOME/.local/bin:\\$PATH\"; electrum-zcash --testnet %u"
+Name=Testnet mode
