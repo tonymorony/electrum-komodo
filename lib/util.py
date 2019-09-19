@@ -31,7 +31,7 @@ import threading
 import hmac
 
 from .i18n import _
-
+from electrum_zcash import constants
 
 import urllib.request, urllib.parse, urllib.error
 import queue
@@ -40,7 +40,7 @@ def inv_dict(d):
     return {v: k for k, v in d.items()}
 
 
-base_units = {'KMD':8, 'mKMD':5, 'uKMD':2}
+base_units = {constants.net.COIN:8, 'm'+constants.net.COIN:5, 'u'+constants.net.COIN:2}
 
 def normalize_version(v):
     return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
@@ -88,7 +88,6 @@ class WalletFileException(Exception): pass
 
 
 class BitcoinException(Exception): pass
-
 
 # Throw this exception to unwind the stack like when an error occurs.
 # However unlike other exceptions the user won't be informed.
@@ -403,11 +402,11 @@ def user_dir():
     if 'ANDROID_DATA' in os.environ:
         return android_check_data_dir()
     elif os.name == 'posix':
-        return os.path.join(os.environ["HOME"], ".electrum-zcash")
+        return os.path.join(os.environ["HOME"], ".electrum-komodo")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "Electrum-Zcash")
+        return os.path.join(os.environ["APPDATA"], "Electrum-Komodo")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-Zcash")
+        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-Komodo")
     else:
         #raise Exception("No home directory found in environment variables.")
         return
@@ -507,7 +506,7 @@ def time_difference(distance_in_time, include_seconds):
 
 mainnet_block_explorers = {
     'blockexplorer.com': ('https://kmdexplorer.io/',
-                        {'tx': 'transactions/', 'addr': 'addresses/'}),
+                        {'tx': 'tx/', 'addr': 'address/'}),
     'system default': ('blockchain:/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
@@ -549,12 +548,12 @@ def parse_URI(uri, on_pr=None):
 
     if ':' not in uri:
         if not bitcoin.is_address(uri):
-            raise Exception("Not a Zcash address")
+            raise Exception("Not a Komodo address")
         return {'address': uri}
 
     u = urllib.parse.urlparse(uri)
-    if u.scheme != 'zcash':
-        raise Exception("Not a Zcash URI")
+    if u.scheme != 'komodo':
+        raise Exception("Not a Komodo URI")
     address = u.path
 
     # python for android fails to parse query
@@ -571,7 +570,7 @@ def parse_URI(uri, on_pr=None):
     out = {k: v[0] for k, v in pq.items()}
     if address:
         if not bitcoin.is_address(address):
-            raise Exception("Invalid Zcash address:" + address)
+            raise Exception("Invalid Komodo address:" + address)
         out['address'] = address
     if 'amount' in out:
         am = out['amount']
@@ -621,7 +620,7 @@ def create_URI(addr, amount, message):
         query.append('amount=%s'%format_satoshis_plain(amount))
     if message:
         query.append('message=%s'%urllib.parse.quote(message))
-    p = urllib.parse.ParseResult(scheme='zcash', netloc='', path=addr, params='', query='&'.join(query), fragment='')
+    p = urllib.parse.ParseResult(scheme='komodo', netloc='', path=addr, params='', query='&'.join(query), fragment='')
     return urllib.parse.urlunparse(p)
 
 
@@ -663,11 +662,11 @@ class SocketPipe:
     def __init__(self, socket):
         self.socket = socket
         self.message = b''
-        self.set_timeout(0.1)
+        self.set_timeout(0.5)
         self.recv_time = time.time()
 
     def set_timeout(self, t):
-        self.socket.settimeout(t)
+        self.socket.settimeout(0.2)
 
     def idle_time(self):
         return time.time() - self.recv_time
@@ -727,7 +726,7 @@ class QueuePipe:
     def __init__(self, send_queue=None, get_queue=None):
         self.send_queue = send_queue if send_queue else queue.Queue()
         self.get_queue = get_queue if get_queue else queue.Queue()
-        self.set_timeout(0.1)
+        self.set_timeout(0.2)
 
     def get(self):
         try:
@@ -746,7 +745,7 @@ class QueuePipe:
         return responses
 
     def set_timeout(self, t):
-        self.timeout = t
+        self.timeout = 0.2
 
     def send(self, request):
         self.send_queue.put(request)

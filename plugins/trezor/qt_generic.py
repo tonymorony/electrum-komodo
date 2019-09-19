@@ -17,7 +17,7 @@ PASSPHRASE_HELP_SHORT =_(
     "Passphrases allow you to access new wallets, each "
     "hidden behind a particular case-sensitive passphrase.")
 PASSPHRASE_HELP = PASSPHRASE_HELP_SHORT + "  " + _(
-    "You need to create a separate Electrum-Zcash wallet for each passphrase "
+    "You need to create a separate Electrum-Komodo wallet for each passphrase "
     "you use as they each generate different addresses.  Changing "
     "your passphrase does not lose other wallets, each is still "
     "accessible behind its own passphrase.")
@@ -334,7 +334,6 @@ class SettingsDialog(WindowModalDialog):
             version = "%d.%d.%d" % (features.major_version,
                                     features.minor_version,
                                     features.patch_version)
-            coins = ", ".join(coin.coin_name for coin in features.coins)
 
             device_label.setText(features.label)
             pin_set_label.setText(noyes[features.pin_protection])
@@ -344,7 +343,6 @@ class SettingsDialog(WindowModalDialog):
             device_id_label.setText(features.device_id)
             initialized_label.setText(noyes[features.initialized])
             version_label.setText(version)
-            coins_label.setText(coins)
             clear_pin_button.setVisible(features.pin_protection)
             clear_pin_warning.setVisible(features.pin_protection)
             pin_button.setText(setchange[features.pin_protection])
@@ -363,13 +361,13 @@ class SettingsDialog(WindowModalDialog):
             currently_enabled = self.features.passphrase_protection
             if currently_enabled:
                 msg = _("After disabling passphrases, you can only pair this "
-                        "Electrum-Zcash wallet if it had an empty passphrase.  "
+                        "Electrum-Komodo wallet if it had an empty passphrase.  "
                         "If its passphrase was not empty, you will need to "
                         "create a new wallet with the install wizard.  You "
                         "can use this wallet again at any time by re-enabling "
                         "passphrases and entering its passphrase.")
             else:
-                msg = _("Your current Electrum-Zcash wallet can only be used with "
+                msg = _("Your current Electrum-Komodo wallet can only be used with "
                         "an empty passphrase.  You must create a separate "
                         "wallet with the install wizard for other passphrases "
                         "as each one generates a new set of addresses.")
@@ -441,8 +439,6 @@ class SettingsDialog(WindowModalDialog):
         device_id_label = QLabel()
         bl_hash_label = QLabel()
         bl_hash_label.setWordWrap(True)
-        coins_label = QLabel()
-        coins_label.setWordWrap(True)
         language_label = QLabel()
         initialized_label = QLabel()
         rows = [
@@ -452,7 +448,6 @@ class SettingsDialog(WindowModalDialog):
             (_("Firmware Version"), version_label),
             (_("Device ID"), device_id_label),
             (_("Bootloader Hash"), bl_hash_label),
-            (_("Supported Coins"), coins_label),
             (_("Language"), language_label),
             (_("Initialized"), initialized_label),
         ]

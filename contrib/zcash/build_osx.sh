@@ -25,7 +25,7 @@ VERSION=`git describe --tags`
 PYTHON_VERSION=3.7.3
 BUILDDIR=/tmp/electrum-build
 PACKAGE='Komodo Electrum'
-GIT_REPO=https://github.com/komodoplatform/electrum-komodo
+GIT_REPO=https://github.com/pbca26/electrum-komodo
 
 info "Installing Python $PYTHON_VERSION"
 export PATH="~/.pyenv/bin:~/.pyenv/shims:~/Library/Python/3.6/bin:$PATH"

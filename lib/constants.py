@@ -41,14 +41,15 @@ class BitcoinMainnet:
 
     TESTNET = False
     WIF_PREFIX = 0xbc
-    #ADDRTYPE_P2PKH = 0x3c
-    #ADDRTYPE_P2SH = 0x55
-    ADDRTYPE_P2PKH = [0x3c]
-    ADDRTYPE_P2SH = [0x55]
+    ADDRTYPE_P2PKH = 0x3c
+    ADDRTYPE_P2SH = 0x55
     GENESIS = "027e3758c3a65b12aa1046462b486d0a63bfa1beae327897f56c5cfb7daaae71"
-    DEFAULT_PORTS = {'t': '10017', 's': '10017'}
+    CHECKPOINTS_URL = "https://atomicexplorer.com/public/checkpoints.json"
+    CHECKPOINTS_MIN_FSIZE = 379430114 # bytes
+    DEFAULT_PORTS = {'t': '10001', 's': '10001'}
     DEFAULT_SERVERS = read_json('servers.json', {})
     CHECKPOINTS = read_json('checkpoints.json', [])
+    COIN = "KMD"
 
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv

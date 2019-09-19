@@ -163,7 +163,7 @@ class AddressesDialog(Factory.Popup):
     def do_view(self, obj):
         req = { 'address': obj.address, 'status' : obj.status }
         status = obj.status
-        c, u, x = self.app.wallet.get_addr_balance(obj.address)
+        c, u, x, interest = self.app.wallet.get_addr_balance(obj.address)
         balance = c + u + x
         if balance > 0:
             req['fund'] = balance
