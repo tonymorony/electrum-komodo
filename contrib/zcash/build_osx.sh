@@ -56,7 +56,7 @@ mkdir $BUILDDIR
 
 info "Downloading icons and locale..."
 for repo in icons locale; do
-  git clone $GIT_REPO-$repo $BUILDDIR/electrum-$repo
+  git clone https://github.com/komodoplatform/electrum-$repo $BUILDDIR/electrum-$repo
 done
 
 cp -R $BUILDDIR/electrum-locale/locale/ ./lib/locale/
