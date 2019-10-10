@@ -146,6 +146,9 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         self.show()
         self.raise_()
         self.refresh_gui()  # Need for QT on MacOSX.  Lame.
+        if self.config.get('fast_verify') is None:
+            self.config.set_key('fast_verify', False, False)
+        self.config.save_user_config();
 
     def run_and_get_wallet(self, get_wallet_from_daemon):
 
