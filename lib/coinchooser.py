@@ -239,10 +239,10 @@ class CoinChooserBase(PrintError):
             inputs = tx.inputs()
 
             for input in inputs:
-                interest += calcInterest(input['locktime'], input['value'], input['height'], True)
+                interest += calcInterest(input['locktime'], input['value'], input['height'])
                 self.print_error(input)
                 self.print_error('interest')
-                self.print_error(calcInterest(input['locktime'], input['value'], input['height'], True))
+                self.print_error(calcInterest(input['locktime'], input['value'], input['height']))
 
             self.print_error('total interest in sats')
             self.print_error(interest)
