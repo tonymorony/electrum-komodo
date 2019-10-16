@@ -22,8 +22,7 @@
 # SOFTWARE.
 from .util import ThreadJob
 from .bitcoin import *
-from .blockchain import CHUNK_LEN
-
+from .blockchain import CHUNK_LEN, deserialize_header
 
 class SPV(ThreadJob):
     """ Simple Payment Verification """
@@ -35,6 +34,7 @@ class SPV(ThreadJob):
         # Keyed by tx hash.  Value is None if the merkle branch was
         # requested, and the merkle root once it has been verified
         self.merkle_roots = {}
+        self.headers = {}
 
     def run(self):
         interface = self.network.interface
@@ -48,24 +48,42 @@ class SPV(ThreadJob):
             self.wallet.syncronizedPerc = (lh * 100) / interface.tip
         unverified = self.wallet.get_unverified_txs()
         for tx_hash, tx_height in unverified.items():
-            # do not request merkle branch before headers are available
-            if (tx_height > 0) and (tx_height <= lh):
-                header = blockchain.read_header(tx_height)
-                if header is None:
-                    index = tx_height // CHUNK_LEN
-                    if index < len(blockchain.checkpoints):
-                        self.network.request_chunk(interface, index)
-                else:
-                    if tx_hash not in self.merkle_roots:
+            if self.network.config.get('fast_verify'):
+                if tx_height > 0:
+                    if tx_height not in self.headers:
+                        request = ('blockchain.block.header', [tx_height])
+                        self.network.send([request], self.parse_header)
+                        self.print_error('requested header', tx_height)
+                        self.headers[tx_height] = None
+
+                    if tx_hash not in self.merkle_roots and tx_height in self.headers and self.headers[tx_height] is not None:
                         request = ('blockchain.transaction.get_merkle',
-                                   [tx_hash, tx_height])
+                                    [tx_hash, tx_height])
                         self.network.send([request], self.verify_merkle)
                         self.print_error('requested merkle', tx_hash)
                         self.merkle_roots[tx_hash] = None
+            else:
+                if (tx_height > 0) and (tx_height <= lh):
+                    header = blockchain.read_header(tx_height)
+                    if header is None:
+                        index = tx_height // CHUNK_LEN
+                        if index < len(blockchain.checkpoints):
+                            self.network.request_chunk(interface, index)
+                    else:
+                        if tx_hash not in self.merkle_roots:
+                            request = ('blockchain.transaction.get_merkle',
+                                        [tx_hash, tx_height])
+                            self.network.send([request], self.verify_merkle)
+                            self.print_error('requested merkle', tx_hash)
+                            self.merkle_roots[tx_hash] = None
 
-        if self.network.blockchain() != self.blockchain:
-            self.blockchain = self.network.blockchain()
-            self.undo_verifications()
+        if self.network.config.get('fast_verify') == False:
+            if self.network.blockchain() != self.blockchain:
+                self.blockchain = self.network.blockchain()
+                self.undo_verifications()
+ 
+    def parse_header(self, header):
+        self.headers[header['params'][0]] = deserialize_header(bfh(header['result']), header['params'][0])
 
     def verify_merkle(self, r):
         if self.wallet.verifier is None:
@@ -81,7 +99,12 @@ class SPV(ThreadJob):
         tx_height = merkle.get('block_height')
         pos = merkle.get('pos')
         merkle_root = self.hash_merkle_root(merkle['merkle'], tx_hash, pos)
-        header = self.network.blockchain().read_header(tx_height)
+        header = None
+    
+        if self.network.config.get('fast_verify') == False:
+            header = self.network.blockchain().read_header(tx_height)
+        elif tx_height in self.headers and self.headers[tx_height] is not None:
+            header = self.headers[tx_height]
         # FIXME: if verification fails below,
         # we should make a fresh connection to a server to
         # recover from this, as this TX will now never verify
@@ -93,12 +116,12 @@ class SPV(ThreadJob):
         if header.get('merkle_root') != merkle_root:
             self.print_error(
                 "merkle verification failed for {} (merkle root mismatch {} != {})"
-                .format(tx_hash, header.get('merkle_root'), merkle_root))
+                .format(tx_hash, header, merkle_root))
             return
         # we passed all the tests
         self.merkle_roots[tx_hash] = merkle_root
         self.print_error("verified %s" % tx_hash)
-        self.wallet.add_verified_tx(tx_hash, (tx_height, header.get('timestamp'), pos))
+        #self.wallet.add_verified_tx(tx_hash, (tx_height, header.get('timestamp'), pos))
 
     @classmethod
     def hash_merkle_root(cls, merkle_s, target_hash, pos):
