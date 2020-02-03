@@ -166,4 +166,4 @@ coll = COLLECT(exe, conexe, tctl_exe,
                a.datas,
                strip=False,
                upx=False,
-               name=os.path.join('dist', 'electrum-zcash'))
+               name=os.path.join('dist', 'electrum'))
