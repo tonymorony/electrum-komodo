@@ -84,7 +84,7 @@ popd
 wine "$WINEPREFIX/drive_c/Program Files (x86)/NSIS/makensis.exe" /DPRODUCT_VERSION=$VERSION electrum.nsi
 
 cd dist
-mv electrum-setup.exe $NAME_ROOT-$VERSION-setup.exe
+mv electrum-komodo-setup.exe $NAME_ROOT-$VERSION-setup.exe
 cd ..
 
 echo "Done."
