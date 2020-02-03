@@ -145,7 +145,7 @@ conexe = EXE(pyz,
                             'console-%s' % cmdline_name))
 
 # trezorctl separate executable
-tctl_a = Analysis(['C:/Python36/Scripts/trezorctl'],
+tctl_a = Analysis(['c:/python3.5.4/Scripts/trezorctl'],
                   hiddenimports=['pkgutil'],
                   excludes=excludes,
                   runtime_hooks=['pyi_tctl_runtimehook.py'])
