@@ -3,7 +3,9 @@ set -ev
 
 BUILD_REPO_URL=https://github.com/komodoplatform/electrum-komodo
 
-git clone --branch dev $BUILD_REPO_URL electrum-komodo
+#git clone --branch dev $BUILD_REPO_URL electrum-komodo
+
+cp libusb-1.0.dylib electrum-komodo/contrib
 
 cd electrum-komodo
 
