@@ -1,18 +1,11 @@
 #!/bin/bash
 set -ev
 
-if [[ -z $TRAVIS_TAG ]]; then
-  echo TRAVIS_TAG unset, exiting
-  exit 1
-fi
+BUILD_REPO_URL=https://github.com/komodoplatform/electrum-komodo
 
-BUILD_REPO_URL=https://github.com/zebra-lucky/electrum-zcash
+git clone --branch dev $BUILD_REPO_URL electrum-komodo
 
-cd build
-
-git clone --branch $TRAVIS_TAG $BUILD_REPO_URL electrum-zcash
-
-cd electrum-zcash
+cd electrum-komodo
 
 export PY36BINDIR=/Library/Frameworks/Python.framework/Versions/3.6/bin/
 export PATH=$PATH:$PY36BINDIR
@@ -34,15 +27,11 @@ export PATH="/usr/local/opt/gettext/bin:$PATH"
 find . -name '*.po' -delete
 find . -name '*.pot' -delete
 
-cp contrib/zcash/osx.spec .
-cp contrib/zcash/pyi_runtimehook.py .
-cp contrib/zcash/pyi_tctl_runtimehook.py .
-
 pyinstaller \
     -y \
     --name electrum-zcash-$ELECTRUM_ZCASH_VERSION.bin \
-    osx.spec
+    contrib/build-osx/osx.spec
 
-sudo hdiutil create -fs HFS+ -volname "Electrum-Zcash" \
-    -srcfolder dist/Electrum-Zcash.app \
-    dist/electrum-zcash-$ELECTRUM_ZCASH_VERSION-macosx.dmg
+sudo hdiutil create -fs HFS+ -volname "Electrum-Komodo" \
+    -srcfolder dist/Electrum-Komodo.app \
+    dist/electrum-komodo-$ELECTRUM_ZCASH_VERSION-macosx.dmg

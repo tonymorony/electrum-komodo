@@ -1,13 +1,6 @@
 #!/bin/bash
 set -ev
 
-if [[ -z $TRAVIS_TAG ]]; then
-  echo TRAVIS_TAG unset, exiting
-  exit 1
-fi
-
-cd build
-
 brew update
 brew tap zebra-lucky/qt5
 brew install zebra-lucky/qt5/qt
