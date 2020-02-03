@@ -97,8 +97,8 @@ excludes += [
     'PyQt5.QtWinExtras',
 ]
 
-a = Analysis(['electrum-zcash'],
-             pathex=['plugins'],
+a = Analysis([home+'electrum-zcash'],
+             pathex=[home+'plugins'],
              hiddenimports=hiddenimports,
              datas=datas,
              binaries=binaries,
