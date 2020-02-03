@@ -20,19 +20,7 @@ set -e
 mkdir -p tmp
 cd tmp
 
-for repo in electrum-komodo; do
-    if [ -d $repo ]; then
-	cd $repo
-	git pull
-	git checkout dev
-	cd ..
-    else
-	URL=https://github.com/tonymorony/$repo.git
-	git clone -b dev $URL $repo
-    fi
-done
-
-for repo in electrum-locale electrum-icons; do
+for repo in electrum-komodo electrum-locale electrum-icons; do
     if [ -d $repo ]; then
 	cd $repo
 	git pull
@@ -71,6 +59,7 @@ cp electrum-icons/icons_rc.py $WINEPREFIX/drive_c/electrum/gui/qt/
 
 # Install frozen dependencies
 $PYTHON -m pip install -r ../../deterministic-build/requirements.txt
+$PYTHON -m pip install pypiwin32
 
 $PYTHON -m pip install -r ../../deterministic-build/requirements-hw.txt
 
