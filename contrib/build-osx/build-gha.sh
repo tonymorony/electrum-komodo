@@ -38,7 +38,7 @@ cp pyi_runtimehook.py ../
 pyinstaller \
     -y \
     --name electrum-zcash-$ELECTRUM_ZCASH_VERSION.bin \
-    contrib/build-osx/osx.spec
+    osx.spec
 
 sudo hdiutil create -fs HFS+ -volname "Electrum-Komodo" \
     -srcfolder dist/Electrum-Komodo.app \
