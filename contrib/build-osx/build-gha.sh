@@ -31,6 +31,8 @@ export PATH="/usr/local/opt/gettext/bin:$PATH"
 find . -name '*.po' -delete
 find . -name '*.pot' -delete
 
+cd $WRKDIR/contrib/build-osx
+
 pyinstaller \
     -y \
     --name electrum-zcash-$ELECTRUM_ZCASH_VERSION.bin \
