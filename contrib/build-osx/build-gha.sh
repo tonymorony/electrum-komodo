@@ -33,10 +33,12 @@ find . -name '*.pot' -delete
 
 cd $WRKDIR/contrib/build-osx
 
+cp pyi_runtimehook.py ../
+
 pyinstaller \
     -y \
     --name electrum-zcash-$ELECTRUM_ZCASH_VERSION.bin \
-    osx.spec
+    contrib/build-osx/osx.spec
 
 sudo hdiutil create -fs HFS+ -volname "Electrum-Komodo" \
     -srcfolder dist/Electrum-Komodo.app \
