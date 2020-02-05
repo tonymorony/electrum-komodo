@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, reopened]
   push:
+    branches:
+      - master
+      - dev
     paths-ignore:
       - ./README.md
     tags-ignore:
