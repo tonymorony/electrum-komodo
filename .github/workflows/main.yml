@@ -70,6 +70,7 @@ jobs:
 
       - name: Run Tests (MacOS)
         run: |
-          python3 -m pip install .[full] --ignore-installed
+          python3 -m pip install --upgrade pip
+          sudo python3 -m pip install .[full] --ignore-installed
           python3 -m pip install pytest
           python3 -m pytest lib/tests/ -s -vv
