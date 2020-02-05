@@ -1,19 +1,26 @@
 name: Komodo Electrum CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, reopened]
+  push:
+    paths-ignore:
+      - ./README.md
+    tags-ignore:
+      - '*.noci'
 
 jobs:
+
   linux-ci:
     name: Linux
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v1
 
       - name: Install deps (Linux)
         env:
           DEBIAN_FRONTEND: noninteractive
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get remove php7.1-fpm php7.2-fpm php7.3-fpm php7.4-fpm php7.3-common
           sudo apt-get update
@@ -37,14 +44,27 @@ jobs:
           python3 -m pip install .[full]
 
       - name: Build (Linux)
-        if: runner.os == 'Linux'
         run: |
           pyrcc5 icons.qrc -o gui/qt/icons_rc.py
           protoc --proto_path=lib/ --python_out=lib/ lib/paymentrequest.proto
           ./contrib/make_locale
 
-      - name: Build (Linux)
-        if: runner.os == 'Linux'
+      - name: Run Tests (Linux)
         run: |
           python3 -m pytest lib/tests/ -s -vv
 
+  macos-ci:
+    name: MacOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build (MacOS)
+        run: |
+          contrib/zcash/build-osx/before_install-osx.sh
+          contrib/zcash/build-osx/build.sh
+
+      - name: Run Tests (MacOS)
+        run: |
+          python3 -m pytest lib/tests/ -s -vv
