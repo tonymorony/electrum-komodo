@@ -34,6 +34,7 @@ find . -name '*.pot' -delete
 cd $WRKDIR/contrib/build-osx
 
 cp pyi_runtimehook.py ../
+cp pyi_tctl_runtimehook.py ../
 
 pyinstaller \
     -y \
