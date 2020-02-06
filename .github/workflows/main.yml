@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
 
   linux-build:
-    name: Linux
+    name: Linux Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           python3 -m pytest lib/tests/ -s -vv
 
   macos:
-    name: MacOS
+    name: MacOS Build and Test
     runs-on: macos-latest
 
     steps:
@@ -119,4 +119,5 @@ jobs:
 
       - name: Build (Wine)
         run: |
+          cd contrib/build-wine
           sudo ./build.sh
