@@ -122,15 +122,19 @@ jobs:
           cd contrib/build-wine
           sudo ./build.sh
 
-
   win-test:
     name: Windows Tests
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v1
-      - name: Win Tests
+      - name: Win Deps Install
         shell: cmd
         run: |
           python.exe -m pip install --upgrade pip
           python.exe -m pip install .[full]
+          python.exe -m pip install pytest
+
+      - name: Win Test Run
+        run: |
+          python.exe -m pytest lib\tests -s -vv
