@@ -121,3 +121,15 @@ jobs:
         run: |
           cd contrib/build-wine
           sudo ./build.sh
+
+
+  win-test:
+    name: Windows Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Win Tests
+      - shell: cmd
+        run: |
+          python.exe -m pip install --upgrade pip
+          python.exe -m pip install .[full]
