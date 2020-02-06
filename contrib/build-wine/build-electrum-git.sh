@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 NAME_ROOT=electrum-komodo
