@@ -116,6 +116,9 @@ jobs:
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
+          sudo dpkg --add-architecture i386 && \
+                  sudo apt-get update && \
+                  sudo apt-get install wine32-development -y
 
       - name: Build (Wine)
         run: |
