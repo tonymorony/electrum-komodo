@@ -57,6 +57,8 @@ jobs:
         run: |
           contrib/build-osx/before_install-osx.sh
           contrib/build-osx/build-gha.sh
+          pwd
+          ls -la
 
       - name: Run Tests (MacOS)
         run: |
@@ -96,6 +98,7 @@ jobs:
                           electrum-komodo-appimage-builder-img \
                           ./build.sh
           pwd
+          ls -la .
           ls -la dsit/
           
 
@@ -128,6 +131,7 @@ jobs:
           cd contrib/build-wine
           sudo ./build.sh
           pwd
+          ls -la .
           ls -la dsit/
 
   win-test:
