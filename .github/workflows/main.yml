@@ -34,7 +34,7 @@ jobs:
                           --workdir /opt/electrum-komodo/contrib/build-linux/appimage \
                           electrum-komodo-appimage-builder-img \
                           ./build.sh
-          tar -czvf electrum-komodo-appimage.tar.gz *.AppImage
+          tar -czvf electrum-komodo-appimage.tar.gz dist/*.AppImage
 
       - name: Upload electrum.Appiamge as artifact
         uses: actions/upload-artifact@v1
@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: electrum-komodo-setup.exe
-          path: ./electrum-komodo-installer
+          path: ./electrum-komodo-installer.zip
 
   win-test:
     name: Windows Tests
