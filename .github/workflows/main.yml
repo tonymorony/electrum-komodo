@@ -4,8 +4,45 @@ on: [push, pull_request]
 
 jobs:
 
+  linux-appimage:
+    name: Linux Build-Appimage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Update (Linux-Appimage)
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get remove php7.1-fpm php7.2-fpm php7.3-fpm php7.4-fpm php7.3-common php7.4-common
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get upgrade -y
+          sudo apt-get update
+
+      - name: Build (Linux/Appimage)
+        run: |
+          cd contrib/deterministic-build
+          git clone https://github.com/KomodoPlatform/electrum-locale
+          cd ../..
+          sudo docker build --no-cache \
+                      -t electrum-komodo-appimage-builder-img contrib/build-linux/appimage
+          sudo docker run \
+                          --name electrum-komodo-appimage-builder-cont \
+                          -v $PWD:/opt/electrum-komodo \
+                          --rm \
+                          --workdir /opt/electrum-komodo/contrib/build-linux/appimage \
+                          electrum-komodo-appimage-builder-img \
+                          ./build.sh
+
+      - name: Upload electrum.Appiamge as artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: electrum-komodo.Appiamge
+          path: ./electrum-komodo-*.AppImage
+
   linux-build:
-    name: Linux Build and Test
+    name: Linux Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -35,9 +72,6 @@ jobs:
           python3 -m pip install setuptools wheel
           python3 -m pip install pytest
           python3 -m pip install .[full]
-
-      - name: Build (Linux)
-        run: |
           pyrcc5 icons.qrc -o gui/qt/icons_rc.py
           protoc --proto_path=lib/ --python_out=lib/ lib/paymentrequest.proto
           ./contrib/make_locale
@@ -57,8 +91,12 @@ jobs:
         run: |
           contrib/build-osx/before_install-osx.sh
           contrib/build-osx/build-gha.sh
-          pwd
-          ls -la contrib/build-osx/dist/
+
+      - name: Upload electrum.dmg as artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: electrum-komodo.dmg
+          path: contrib/build-osx/dist/electrum-komodo-*-macosx.dmg
 
       - name: Run Tests (MacOS)
         run: |
@@ -66,41 +104,6 @@ jobs:
           sudo python3 -m pip install .[full] --ignore-installed
           sudo python3 -m pip install pytest
           sudo python3 -m pytest lib/tests/ -s -vv
-
-  linux-appimage:
-    name: Linux-Appimage Build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Update (Linux-Appimage)
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo apt-get remove php7.1-fpm php7.2-fpm php7.3-fpm php7.4-fpm php7.3-common php7.4-common
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get upgrade -y
-          sudo apt-get update
-
-      - name: Build (Linux/Appimage)
-        run: |
-          cd contrib/deterministic-build
-          git clone https://github.com/KomodoPlatform/electrum-locale
-          cd ../..
-          sudo docker build --no-cache \
-                      -t electrum-komodo-appimage-builder-img contrib/build-linux/appimage
-          sudo docker run \
-                          --name electrum-komodo-appimage-builder-cont \
-                          -v $PWD:/opt/electrum-komodo \
-                          --rm \
-                          --workdir /opt/electrum-komodo/contrib/build-linux/appimage \
-                          electrum-komodo-appimage-builder-img \
-                          ./build.sh
-          pwd
-          ls -la .
-          ls -la dist/
-          
 
   wine-build:
     name: Wine Build
@@ -130,9 +133,12 @@ jobs:
         run: |
           cd contrib/build-wine
           sudo ./build.sh
-          pwd
-          ls -la .
-          ls -la dist/
+
+      - name: Upload electrum-setup.exe as artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: electrum-komodo-setup.exe
+          path: contrib/build-wine/dist/electrum-komodo-*-setup.exe
 
   win-test:
     name: Windows Tests
