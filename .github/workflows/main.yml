@@ -34,14 +34,15 @@ jobs:
                           --workdir /opt/electrum-komodo/contrib/build-linux/appimage \
                           electrum-komodo-appimage-builder-img \
                           ./build.sh
+          tar -czvf electrum-komodo-appimage.tar.gz *.AppImage
 
       - name: Upload electrum.Appiamge as artifact
         uses: actions/upload-artifact@v1
         with:
-          name: electrum-komodo.Appiamge
-          path: ./electrum-komodo-*.AppImage
+          name: electrum-komodo.Appiamge.tar.gz
+          path: ./electrum-komodo-appimage.tar.gz
 
-  linux-build:
+  linux-test:
     name: Linux Tests
     runs-on: ubuntu-latest
 
@@ -91,12 +92,13 @@ jobs:
         run: |
           contrib/build-osx/before_install-osx.sh
           contrib/build-osx/build-gha.sh
+          tar -czvf electrum-komodo-macos.dmg.tar.gz contrib/build-osx/dist/*.dmg
 
       - name: Upload electrum.dmg as artifact
         uses: actions/upload-artifact@v1
         with:
-          name: electrum-komodo.dmg
-          path: contrib/build-osx/dist/electrum-komodo-*-macosx.dmg
+          name: electrum-komodo-macos.dmg.tar.gz
+          path: ./electrum-komodo-macos.dmg.tar.gz
 
       - name: Run Tests (MacOS)
         run: |
@@ -133,12 +135,14 @@ jobs:
         run: |
           cd contrib/build-wine
           sudo ./build.sh
+          cd ../..
+          zip electrum-komodo-installer contrib/build-wine/dist/*.exe
 
       - name: Upload electrum-setup.exe as artifact
         uses: actions/upload-artifact@v1
         with:
           name: electrum-komodo-setup.exe
-          path: contrib/build-wine/dist/electrum-komodo-*-setup.exe
+          path: ./electrum-komodo-installer
 
   win-test:
     name: Windows Tests
