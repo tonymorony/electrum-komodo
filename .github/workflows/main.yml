@@ -95,6 +95,9 @@ jobs:
                           --workdir /opt/electrum-komodo/contrib/build-linux/appimage \
                           electrum-komodo-appimage-builder-img \
                           ./build.sh
+          pwd
+          ls -la dsit/
+          
 
   wine-build:
     name: Wine Build
@@ -124,6 +127,8 @@ jobs:
         run: |
           cd contrib/build-wine
           sudo ./build.sh
+          pwd
+          ls -la dsit/
 
   win-test:
     name: Windows Tests
