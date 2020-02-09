@@ -150,10 +150,15 @@ jobs:
                   sudo apt-get update && \
                   sudo apt-get install wine32-development -y
 
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       - name: Build (Wine)
         run: |
           cd contrib/build-wine
-          sudo ./build.sh
+          sudo ./build.sh ${{ steps.extract_branch.outputs.branch }}
           cd ../..
           zip electrum-komodo-installer contrib/build-wine/dist/*.exe
 
