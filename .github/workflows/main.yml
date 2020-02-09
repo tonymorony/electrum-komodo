@@ -58,7 +58,7 @@ jobs:
       - name: Upload electrum.Appiamge as artifact
         uses: actions/upload-artifact@v1
         with:
-          name: electrum-komodo.Appiamge.tar.gz
+          name: electrum-komodo-${{ github.sha }}.AppIamge.tar.gz
           path: ./electrum-komodo-appimage.tar.gz
 
   linux-test:
@@ -117,7 +117,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: electrum-komodo-macos.dmg.tar.gz
-          path: ./electrum-komodo-macos.dmg.tar.gz
+          path: ./electrum-komodo-macos-${{ github.sha }}.dmg.tar.gz
 
       - name: Run Tests (MacOS)
         run: |
@@ -161,7 +161,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: electrum-komodo-setup.exe
-          path: ./electrum-komodo-installer.zip
+          path: ./electrum-komodo-installer-${{ github.sha }}.zip
 
   win-test:
     name: Windows Tests
