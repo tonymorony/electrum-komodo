@@ -19,7 +19,27 @@ set -e
 mkdir -p tmp
 cd tmp
 
-for repo in electrum-komodo electrum-locale electrum-icons; do
+if [ -d electrum-komodo ]; then
+    cd electrum-komodo
+    git pull
+    if [ $1 ]
+        then
+            git checkout $1
+        else
+            git checkout master
+        fi
+    cd ..
+    else
+    URL=https://github.com/komodoplatform/electrum-komodo.git
+    if [ $1 ]
+        then
+            git clone -b $1 $URL electrum-komodo
+        else
+            git clone -b master $URL electrum-komodo
+        fi
+    fi
+
+for repo in electrum-locale electrum-icons; do
     if [ -d $repo ]; then
 	cd $repo
 	git pull
