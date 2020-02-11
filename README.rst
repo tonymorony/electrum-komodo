@@ -23,7 +23,8 @@ Getting started
 Electrum-Komodo is a pure python application. If you want to use the
 Qt interface, install the Qt dependencies::
 
-    sudo apt-get install python3-pyqt5
+    Linux: sudo apt-get install python3-pyqt5
+    Mac: brew install pyqt5
     
 For the Trezor support also install libusb::
 
@@ -60,10 +61,15 @@ Check out the code from GitHub::
     git clone git://github.com/KomodoPlatform/electrum-komodo.git
     cd electrum-komodo
 
+Install the Qt dependencies::
+
+    Linux: sudo apt-get install python3-pyqt5
+    Mac: brew install pyqt5
+
 Run install (this should install dependencies)::
 
     pip3 install .[full] or pip3 install .[full] --ignore-installed
-    
+
 Note for Trezor owners::
     In certain cases pip3 install might break trezorctl. In order to fix that run pip3 uninstall trezor followed by pip3 install trezor-komodo.
 
