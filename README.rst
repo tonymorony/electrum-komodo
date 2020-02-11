@@ -9,12 +9,12 @@ Electrum-Komodo - Lightweight Komodo client
   Homepage: git://github.com/KomodoPlatform/electrum-komodo.git
 
 
-.. image:: https://travis-ci.com/KomodoPlatform/electrum-komodo.svg?branch=master
-    :target: https://travis-ci.com/KomodoPlatform/electrum-komodo
+.. image:: https://github.com/KomodoPlatform/electrum-komodo/workflows/Komodo%20Electrum%20CI/badge.svg
+    :target: https://github.com/KomodoPlatform/electrum-komodo/actions
     :alt: Build Status
 
 
-
+![Komodo Electrum CI]()
 
 
 Getting started
