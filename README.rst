@@ -14,9 +14,6 @@ Electrum-Komodo - Lightweight Komodo client
     :alt: Build Status
 
 
-![Komodo Electrum CI]()
-
-
 Getting started
 ===============
 
