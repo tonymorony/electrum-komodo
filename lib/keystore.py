@@ -681,11 +681,25 @@ def is_old_mpk(mpk):
         return False
     return len(mpk) == 128
 
+def is_seed_list(text):
+    parts = text.split()
+    return bool(parts)
+
+def get_seed_list(text):
+    parts = text.split()
+    return parts
 
 def is_address_list(text):
     parts = text.split()
     return bool(parts) and all(bitcoin.is_address(x) for x in parts)
 
+def get_private_keys_from_agama_seed(text):
+    parts = text.split('\n')
+    parts = (bitcoin.agama_seed_to_wif(x) for x in parts)
+    parts = map(lambda x: ''.join(x.split()), parts)
+    parts = list(filter(bool, parts))
+    if bool(parts) and all(bitcoin.is_private_key(x) for x in parts):
+        return parts
 
 def get_private_keys(text):
     parts = text.split('\n')
@@ -707,7 +721,7 @@ is_bip32_key = lambda x: is_xprv(x) or is_xpub(x)
 
 
 def bip44_derivation(account_id, bip43_purpose=44):
-    coin = 1 if constants.net.TESTNET else 133
+    coin = 1 if constants.net.TESTNET else 141
     return "m/%d'/%d'/%d'" % (bip43_purpose, coin, int(account_id))
 
 def from_seed(seed, passphrase, is_p2sh):

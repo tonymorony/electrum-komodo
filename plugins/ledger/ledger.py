@@ -539,7 +539,14 @@ class LedgerPlugin(HW_PluginBase):
                    (0x2581, 0x3b7c), # HW.1 ledger production
                    (0x2581, 0x4b7c), # HW.1 ledger test
                    (0x2c97, 0x0000), # Blue
-                   (0x2c97, 0x0001)  # Nano-S
+                   (0x2c97, 0x0001), # Nano-S
+                   (0x2c97, 0x0004), # Nano-X # ref: https://github.com/spesmilo/electrum/pull/5140/files
+                   (0x2c97, 0x0005), # RFU
+                   (0x2c97, 0x0006), # RFU
+                   (0x2c97, 0x0007), # RFU
+                   (0x2c97, 0x0008), # RFU
+                   (0x2c97, 0x0009), # RFU
+                   (0x2c97, 0x000a)  # RFU
                  ]
 
     def __init__(self, parent, config, name):
@@ -577,7 +584,7 @@ class LedgerPlugin(HW_PluginBase):
         device_id = device_info.device.id_
         client = devmgr.client_by_id(device_id)
         client.handler = self.create_handler(wizard)
-        client.get_xpub("m/44'/133'", 'standard') # TODO replace by direct derivation once Nano S > 1.1
+        client.get_xpub("m/44'/141'", 'standard') # TODO replace by direct derivation once Nano S > 1.1
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         devmgr = self.device_manager()

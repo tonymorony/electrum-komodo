@@ -1,4 +1,6 @@
 # -*- mode: python -*-
+import os
+import os.path
 import sys
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
@@ -9,6 +11,8 @@ for i, x in enumerate(sys.argv):
         break
 else:
     raise Exception('no name')
+
+PY36BINDIR =  os.environ.get('PY36BINDIR')
 
 hiddenimports = collect_submodules('trezorlib')
 hiddenimports += collect_submodules('btchip')
@@ -38,19 +42,18 @@ hiddenimports += [
 ]
 
 datas = [
-    ('lib/servers.json', 'electrum_zcash'),
-    ('lib/servers_testnet.json', 'electrum_zcash'),
-    ('lib/servers_regtest.json', 'electrum_zcash'),
-    ('lib/currencies.json', 'electrum_zcash'),
-    ('lib/locale', 'electrum_zcash/locale'),
-    ('lib/wordlist', 'electrum_zcash/wordlist'),
-    ('C:\\zbarw', '.'),
+    ('../../lib/servers.json', 'electrum_zcash'),
+    ('../../lib/servers_testnet.json', 'electrum_zcash'),
+    ('../../lib/servers_regtest.json', 'electrum_zcash'),
+    ('../../lib/currencies.json', 'electrum_zcash'),
+    ('../../lib/locale', 'electrum_zcash/locale'),
+    ('../../lib/wordlist', 'electrum_zcash/wordlist'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
 datas += collect_data_files('keepkeylib')
 
-binaries = [('C:/Python36/libusb-1.0.dll', '.')]
+binaries = [('../libusb-1.0.dylib', '.')]
 
 # https://github.com/pyinstaller/pyinstaller/wiki/Recipe-remove-tkinter-tcl
 sys.modules['FixTk'] = None
@@ -88,13 +91,13 @@ excludes += [
     'PyQt5.QtWinExtras',
 ]
 
-a = Analysis(['electrum-zcash'],
+a = Analysis(['../../electrum-zcash'],
              pathex=['plugins'],
              hiddenimports=hiddenimports,
              datas=datas,
              binaries=binaries,
              excludes=excludes,
-             runtime_hooks=['pyi_runtimehook.py'])
+             runtime_hooks=['../pyi_runtimehook.py'])
 
 # http://stackoverflow.com/questions/19055089/
 for d in a.datas:
@@ -120,26 +123,14 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           console=False,
-          icon='icons/electrum-zcash.ico',
-          name=os.path.join('build\\pyi.win32\\electrum', cmdline_name))
+          icon='../../icons/electrum-komodo.ico',
+          name=os.path.join('build/electrum-zcash/electrum-zcash', cmdline_name))
 
-# exe with console output
-conexe = EXE(pyz,
-          a.scripts,
-          exclude_binaries=True,
-          debug=False,
-          strip=False,
-          upx=False,
-          console=True,
-          icon='icons/electrum-zcash.ico',
-          name=os.path.join('build\\pyi.win32\\electrum',
-                            'console-%s' % cmdline_name))
-
-# trezorctl separate executable
-tctl_a = Analysis(['C:/Python36/Scripts/trezorctl'],
+# trezorctl separate bin
+tctl_a = Analysis([os.path.join(PY36BINDIR, 'trezorctl')],
                   hiddenimports=['pkgutil'],
                   excludes=excludes,
-                  runtime_hooks=['pyi_tctl_runtimehook.py'])
+                  runtime_hooks=['../pyi_tctl_runtimehook.py'])
 
 tctl_pyz = PYZ(tctl_a.pure)
 
@@ -150,11 +141,17 @@ tctl_exe = EXE(tctl_pyz,
            strip=False,
            upx=False,
            console=True,
-           name=os.path.join('build\\pyi.win32\\electrum', 'trezorctl.exe'))
+           name=os.path.join('build/electrum-zcash/electrum-zcash', 'trezorctl.bin'))
 
-coll = COLLECT(exe, conexe, tctl_exe,
+coll = COLLECT(exe, tctl_exe,
                a.binaries,
                a.datas,
                strip=False,
                upx=False,
                name=os.path.join('dist', 'electrum-zcash'))
+
+app = BUNDLE(coll,
+             name=os.path.join('dist', 'Electrum-Komodo.app'),
+             appname="Electrum-Komodo",
+	         icon='electrum-komodo.icns',
+             version = 'ELECTRUM_VERSION')

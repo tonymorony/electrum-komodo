@@ -1,4 +1,4 @@
 Cython>=0.27
-trezor>=0.9.0
+trezor-komodo
 keepkey
 btchip-python

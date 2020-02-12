@@ -134,7 +134,7 @@ class KeepKeyCompatiblePlugin(HW_PluginBase):
         return client
 
     def get_coin_name(self):
-        return "ZcashTestnet" if constants.net.TESTNET else "Zcash"
+        return "KomodoTestnet" if constants.net.TESTNET else "Komodo"
 
     def initialize_device(self, device_id, wizard, handler):
         # Initialization method

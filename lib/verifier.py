@@ -44,6 +44,8 @@ class SPV(ThreadJob):
         if not blockchain:
             return
         lh = self.network.get_local_height()
+        if lh > 0 and interface.tip > 0:
+            self.wallet.syncronizedPerc = (lh * 100) / interface.tip
         unverified = self.wallet.get_unverified_txs()
         for tx_hash, tx_height in unverified.items():
             # do not request merkle branch before headers are available
