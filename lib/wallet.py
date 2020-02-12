@@ -696,7 +696,7 @@ class Abstract_Wallet(PrintError):
         if constants.net.COIN == 'KMD':
             utxos = self.get_addr_utxo(address)
             for utxo in utxos:
-                interest += calcInterest(utxos[utxo]['locktime'], utxos[utxo]['value'], utxos[utxo]['height'], True)
+                interest += calcInterest(utxos[utxo]['locktime'], utxos[utxo]['value'], utxos[utxo]['height'])
         
         for txo, (tx_height, v, is_cb) in received.items():
             if is_cb and tx_height + COINBASE_MATURITY > local_height:

@@ -239,10 +239,10 @@ class CoinChooserBase(PrintError):
             inputs = tx.inputs()
 
             for input in inputs:
-                interest += calcInterest(input['locktime'], input['value'], input['height'], True)
+                interest += calcInterest(input['locktime'], input['value'], input['height'])
                 self.print_error(input)
                 self.print_error('interest')
-                self.print_error(calcInterest(input['locktime'], input['value'], input['height'], True))
+                self.print_error(calcInterest(input['locktime'], input['value'], input['height']))
 
             self.print_error('total interest in sats')
             self.print_error(interest)
@@ -264,11 +264,21 @@ class CoinChooserBase(PrintError):
         self.print_error(change)
         self.print_error(change_addrs)
         
-        tx.add_outputs(change)
-
-        if interest > 0 and constants.net.COIN == 'KMD':
+        # if change is 0 add interest as a separate output
+        if interest > 0 and constants.net.COIN == 'KMD' and not change:
             interest_change = self.change_outputs_interest(tx, change_addrs, interest)
             tx.add_outputs(interest_change)
+
+        # add up interest to change if applicable
+        if change and change[0]:
+          self.print_error('add interest to change')
+          self.print_error('change before', change[0])
+          changeTupleToList = list(change[0])
+          changeTupleToList[2] += interest
+          change[0] = tuple(changeTupleToList)
+          self.print_error('change after', change[0])
+
+        tx.add_outputs(change)
 
         self.print_error("using %d inputs" % len(tx.inputs()))
         self.print_error("using buckets:", [bucket.desc for bucket in buckets])
