@@ -32,8 +32,9 @@ from collections import defaultdict
 import threading
 import socket
 import json
-
 import socks
+import urllib
+
 from . import util
 from . import bitcoin
 from .bitcoin import *
@@ -226,6 +227,11 @@ class Network(util.DaemonThread):
         self.socket_queue = queue.Queue()
         self.start_network(deserialize_server(self.default_server)[2],
                            deserialize_proxy(self.config.get('proxy')))
+        self.is_downloading_checkpoints = False
+        self.downloaded_checkpoints_perc = 0
+        self.restart_required = False
+        self.sync_stalled_restart_required = False
+        self.num_blocks = -1
 
     def register_callback(self, callback, events):
         with self.lock:
@@ -284,7 +290,7 @@ class Network(util.DaemonThread):
         self.notify('status')
 
     def is_connected(self):
-        return self.interface is not None
+        return self.interface is not None or self.is_downloading_checkpoints
 
     def is_connecting(self):
         return self.connection_status == 'connecting'
@@ -319,8 +325,8 @@ class Network(util.DaemonThread):
         self.queue_request('server.banner', [])
         self.queue_request('server.donation_address', [])
         self.queue_request('server.peers.subscribe', [])
-        self.request_fee_estimates()
-        self.queue_request('blockchain.relayfee', [])
+        # self.request_fee_estimates()
+        # self.queue_request('blockchain.relayfee', [])
         for h in list(self.subscribed_addresses):
             self.queue_request('blockchain.scripthash.subscribe', [h])
 
@@ -586,9 +592,10 @@ class Network(util.DaemonThread):
     def process_responses(self, interface):
         responses = interface.get_responses()
         for request, response in responses:
-            print(response)
             if request:
                 method, params, message_id = request
+                if method != 'blockchain.block.headers':
+                    self.print_error(response)
                 k = self.get_index(method, params)
                 # client requests go through self.send() with a
                 # callback, are only sent to the current interface,
@@ -717,17 +724,16 @@ class Network(util.DaemonThread):
         # todo: get tip first, then decide which checkpoint to use.
         self.add_recent_server(server)
         interface = Interface(server, socket)
-        interface.blockchain = None
+        interface.blockchain = self.blockchains[0] or None
         interface.tip_header = None
         interface.tip = 0
         interface.mode = 'default'
         interface.request = None
         self.interfaces[server] = interface
-        #self.queue_request('blockchain.headers.subscribe', [True], interface)
         self.queue_request('blockchain.headers.subscribe', [], interface)
         if server == self.default_server:
             self.switch_to_interface(server)
-        #self.notify('interfaces')
+        self.notify('interfaces')
 
     def maintain_sockets(self):
         '''Socket maintenance.'''
@@ -745,7 +751,8 @@ class Network(util.DaemonThread):
         # must use copy of values
         for interface in list(self.interfaces.values()):
             if interface.has_timed_out():
-                self.connection_down(interface.server)
+                self.print_error('connection timed out, maintain it further')
+                # self.connection_down(interface.server)
             elif interface.ping_required():
                 params = [ELECTRUM_VERSION, PROTOCOL_VERSION]
                 self.queue_request('server.version', params, interface)
@@ -758,7 +765,7 @@ class Network(util.DaemonThread):
                 self.print_error('network: retrying connections')
                 self.disconnected_servers = set([])
                 self.nodes_retry_time = now
-
+                
         # main interface
         if not self.is_connected():
             if self.auto_connect:
@@ -771,9 +778,6 @@ class Network(util.DaemonThread):
                         self.server_retry_time = now
                 else:
                     self.switch_to_interface(self.default_server)
-        else:
-            if self.config.is_fee_estimates_update_required():
-                self.request_fee_estimates()
 
     def request_chunk(self, interface, index):
         if index in self.requested_chunks:
@@ -789,6 +793,10 @@ class Network(util.DaemonThread):
         result = response.get('result')
         blockchain = interface.blockchain
         if result is None or error is not None:
+            if error == {'code': -101, 'message': 'excessive resource usage'}:
+                # on average a non-stop sync of 240000 blocks in chunks are triggering "excessive resource usage" error
+                # that's about 5+ months worth of blocks
+                self.sync_stalled_restart_required = True
             interface.print_error(error or 'bad response')
             return
         index = height // CHUNK_LEN
@@ -824,9 +832,9 @@ class Network(util.DaemonThread):
         hex_header = result.get('hex', None)
 
         if interface.request != height:
-            interface.print_error("unsolicited header",interface.request, height)
-            self.connection_down(interface.server)
-            return
+            interface.print_error("unsolicited header", interface.request, height)
+            # self.connection_down(interface.server)
+            # return
 
         if not hex_header:
             interface.print_error(response)
@@ -940,7 +948,24 @@ class Network(util.DaemonThread):
                 self.notify('updated')
 
         else:
-            raise Exception(interface.mode)
+            can_connect = interface.blockchain.can_connect(header)
+            if can_connect:
+                interface.blockchain.save_header(header)
+                next_height = height + 1 if height < interface.tip else None
+            else:
+                # go back
+                interface.print_error("cannot connect", height)
+                interface.mode = 'backward'
+                interface.bad = height
+                interface.bad_header = header
+                next_height = height - 1
+
+            if next_height is None:
+                # exit catch_up state
+                interface.print_error('catch up done', interface.blockchain.height())
+                interface.blockchain.catch_up = None
+                self.switch_lagging_interface()
+                self.notify('updated')
         # If not finished, get the next header
         interface.request = None
         if next_height:
@@ -986,17 +1011,71 @@ class Network(util.DaemonThread):
     def init_headers_file(self):
         b = self.blockchains[0]
         filename = b.path()
-        len_checkpoints = len(constants.net.CHECKPOINTS)
-        length = HDR_LEN * len_checkpoints * CHUNK_LEN
-        if not os.path.exists(filename) or os.path.getsize(filename) < length:
-            with open(filename, 'wb') as f:
-                for i in range(len_checkpoints):
-                    for height, header_data in b.checkpoints[i][2]:
-                        f.seek(height*HDR_LEN)
-                        bin_header = bfh(header_data)
-                        f.write(bin_header)
+        filenameCP = filename.replace('blockchain_headers', 'checkpoints.json')
+        
+        if os.path.exists(filenameCP):
+            f = open(filenameCP, 'rb')
+            file_size = len(f.read())
+            self.print_error('local checkpoints.json size:', file_size)
+
+        if not os.path.exists(filenameCP) or file_size < constants.net.CHECKPOINTS_MIN_FSIZE:
+            site = urllib.request.urlopen(constants.net.CHECKPOINTS_URL)
+            meta = site.info()
+            self.print_error('remote checkpoints.json size ', meta['Content-Length'])
+
+            self.print_error('checkpoints.json doesn\'t exist')
+            self.print_error('filename')
+            self.print_error(filenameCP)
+            
+            self.is_downloading_checkpoints = True
+            self.set_status('syncing') # downloading?
+            t = threading.Thread(target = self.download_thread(filenameCP))
+            t.daemon = True
+            t.start()
+        else:
+            b = self.blockchains[0]
+            filename = b.path()
+            len_checkpoints = len(b.checkpoints)
+            length = HDR_LEN * len_checkpoints * CHUNK_LEN
+            if not os.path.exists(filename) or os.path.getsize(filename) < length:
+                with open(filename, 'wb') as f:
+                    for i in range(len_checkpoints):
+                        for height, header_data in b.checkpoints[i][2]:
+                            f.seek(height*HDR_LEN)
+                            bin_header = bfh(header_data)
+                            f.write(bin_header)
+            with b.lock:
+                b.update_size()
+
+    def dl_thread_cb(self, blocks, block_size, total_size):
+        self.set_status('syncing')
+        self.notify('status')
+        self.print_error('blocks downloaded', blocks)
+        self.print_error('block size KB', block_size / 1024)
+        self.print_error('total remote size MB ', total_size / 1024 / 1024)
+        self.print_error('total downloaded size MB ', blocks * block_size / 1024 / 1024)
+        self.print_error('total % ', blocks * block_size * 100 / total_size)
+
+        self.downloaded_checkpoints_perc = blocks * block_size * 100 / total_size
+
+        if self.downloaded_checkpoints_perc >= 100:
+            self.restart_required = True
+
+    def download_thread(self, filename):
+        try:
+            import urllib, socket
+            socket.setdefaulttimeout(30)
+            self.print_error('downloading ', constants.net.CHECKPOINTS_URL)
+            urllib.request.urlretrieve(constants.net.CHECKPOINTS_URL, filename, self.dl_thread_cb)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            self.print_error('download failed. creating file', filename)
+            open(filename, 'wb+').close()
+        b = self.blockchains[0]
         with b.lock:
             b.update_size()
+        self.set_status('syncing')
 
     def run(self):
         self.init_headers_file()

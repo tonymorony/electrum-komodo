@@ -97,7 +97,7 @@ class AddressList(MyTreeWidget):
             num = len(self.wallet.get_address_history(address))
             is_used = self.wallet.is_used(address)
             label = self.wallet.labels.get(address, '')
-            c, u, x = self.wallet.get_addr_balance(address)
+            c, u, x, interest = self.wallet.get_addr_balance(address)
             balance = c + u + x
             if self.show_used == 1 and (balance or is_used):
                 continue

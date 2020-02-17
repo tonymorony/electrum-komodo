@@ -40,6 +40,7 @@ from collections import defaultdict
 from numbers import Number
 from decimal import Decimal
 import itertools
+import math
 
 import sys
 
@@ -65,6 +66,8 @@ from . import paymentrequest
 from .paymentrequest import PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .paymentrequest import InvoiceStore
 from .contacts import Contacts
+from .komodo_interest import calcInterest
+from electrum_zcash import constants
 
 TX_STATUS = [
     _('Unconfirmed'),
@@ -76,7 +79,6 @@ TX_STATUS = [
 TX_HEIGHT_LOCAL = -2
 TX_HEIGHT_UNCONF_PARENT = -1
 TX_HEIGHT_UNCONFIRMED = 0
-
 
 def relayfee(network):
     from .simple_config import FEERATE_DEFAULT_RELAY
@@ -235,6 +237,7 @@ class Abstract_Wallet(PrintError):
 
         self.coin_price_cache = {}
 
+        self.syncronizedPerc = 0
 
     def diagnostic_name(self):
         return self.basename()
@@ -598,6 +601,7 @@ class Abstract_Wallet(PrintError):
         label = ''
         height = conf = timestamp = None
         tx_hash = tx.txid()
+
         if tx.is_complete():
             if tx_hash in self.transactions.keys():
                 label = self.get_label(tx_hash)
@@ -660,13 +664,19 @@ class Abstract_Wallet(PrintError):
         for txo, v in coins.items():
             tx_height, value, is_cb = v
             prevout_hash, prevout_n = txo.split(':')
+            tx = self.transactions.get(prevout_hash)
+            # weird bug, locktime is not read correctly until inputs method is called
+            # go figure?
+            tx.inputs()
+
             x = {
                 'address':address,
                 'value':value,
                 'prevout_n':int(prevout_n),
                 'prevout_hash':prevout_hash,
                 'height':tx_height,
-                'coinbase':is_cb
+                'coinbase':is_cb,
+                'locktime': tx.locktime
             }
             out[txo] = x
         return out
@@ -679,8 +689,15 @@ class Abstract_Wallet(PrintError):
     # return the balance of a bitcoin address: confirmed and matured, unconfirmed, unmatured
     def get_addr_balance(self, address):
         received, sent = self.get_addr_io(address)
-        c = u = x = 0
+        c = u = x = interest = 0
         local_height = self.get_local_height()
+        
+        # calc kmd interest
+        if constants.net.COIN == 'KMD':
+            utxos = self.get_addr_utxo(address)
+            for utxo in utxos:
+                interest += calcInterest(utxos[utxo]['locktime'], utxos[utxo]['value'], utxos[utxo]['height'], True)
+        
         for txo, (tx_height, v, is_cb) in received.items():
             if is_cb and tx_height + COINBASE_MATURITY > local_height:
                 x += v
@@ -693,7 +710,7 @@ class Abstract_Wallet(PrintError):
                     c -= v
                 else:
                     u -= v
-        return c, u, x
+        return c, u, x, interest
 
     def get_spendable_coins(self, domain, config):
         confirmed_only = config.get('confirmed_only', False)
@@ -731,13 +748,14 @@ class Abstract_Wallet(PrintError):
     def get_balance(self, domain=None):
         if domain is None:
             domain = self.get_addresses()
-        cc = uu = xx = 0
+        cc = uu = xx = interestTotal = 0
         for addr in domain:
-            c, u, x = self.get_addr_balance(addr)
+            c, u, x, interest = self.get_addr_balance(addr)
             cc += c
             uu += u
             xx += x
-        return cc, uu, xx
+            interestTotal += interest
+        return cc, uu, xx, interestTotal
 
     def get_address_history(self, addr):
         h = []
@@ -1005,7 +1023,7 @@ class Abstract_Wallet(PrintError):
         history.reverse()
 
         # 3. add balance
-        c, u, x = self.get_balance(domain)
+        c, u, x, interest = self.get_balance(domain)
         balance = c + u + x
         h2 = []
         for tx_hash, height, conf, timestamp, delta in history:
@@ -1261,8 +1279,16 @@ class Abstract_Wallet(PrintError):
 
         # Sort the inputs and outputs deterministically
         tx.BIP_LI01_sort()
-        # Timelock tx to current height.
-        tx.locktime = self.get_local_height()
+        
+        # run coinchooser to calc interest and boost vouts
+        # set locktime for kmd
+        max_change = self.max_change_outputs if self.multiple_change else 1
+        coin_chooser = coinchooser.get_coin_chooser(config)
+        tx = coin_chooser.make_tx(inputs, outputs, change_addrs[:max_change],
+                                    fee_estimator, self.dust_threshold())
+        if constants.net.COIN == 'KMD':
+            tx.locktime = math.floor(time.time()) - 777
+        
         run_hook('make_unsigned_transaction', self, tx)
         return tx
 
@@ -1348,11 +1374,11 @@ class Abstract_Wallet(PrintError):
         h = self.history.get(address,[])
         if len(h) == 0:
             return False
-        c, u, x = self.get_addr_balance(address)
+        c, u, x, interest = self.get_addr_balance(address)
         return c + u + x == 0
 
     def is_empty(self, address):
-        c, u, x = self.get_addr_balance(address)
+        c, u, x, interest = self.get_addr_balance(address)
         return c+u+x == 0
 
     def address_is_old(self, address, age_limit=2):
@@ -2246,7 +2272,7 @@ class Multisig_Wallet(Deterministic_Wallet):
         txin['num_sig'] = self.m
 
 
-wallet_types = ['standard', 'multisig', 'imported']
+wallet_types = ['standard', 'multisig', 'imported', 'agama']
 
 def register_wallet_type(category):
     wallet_types.append(category)
@@ -2255,7 +2281,8 @@ wallet_constructors = {
     'standard': Standard_Wallet,
     'old': Standard_Wallet,
     'xpub': Standard_Wallet,
-    'imported': Imported_Wallet
+    'imported': Imported_Wallet,
+    'agama': Imported_Wallet
 }
 
 def register_constructor(wallet_type, constructor):
