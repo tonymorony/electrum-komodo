@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 NAME_ROOT=electrum-komodo
@@ -19,8 +18,40 @@ set -e
 
 mkdir -p tmp
 cd tmp
+if [ ! -z "$2" ]
+    then
+        URL=https://github.com/$2.git
+    else
+        URL=https://github.com/komodoplatform/electrum-komodo.git
+    fi
 
-for repo in electrum-komodo electrum-locale electrum-icons; do
+if [ -d electrum-komodo ]; then
+    cd electrum-komodo
+    git pull
+    if [ ! -z "$1" ]
+        then
+            git checkout $1
+        else
+            git checkout master
+        fi
+    cd ..
+    else
+    echo $URL
+    if [ $1 ]
+        then
+            git clone $URL electrum-komodo
+	    cd electrum-komodo
+	    git checkout --force $1
+	    cd ..
+        else
+            git clone $URL electrum-komodo
+	    cd electrum-komodo
+	    git checkout master
+	    cd ..
+        fi
+    fi
+
+for repo in electrum-locale electrum-icons; do
     if [ -d $repo ]; then
 	cd $repo
 	git pull
