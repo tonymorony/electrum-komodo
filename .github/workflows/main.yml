@@ -153,6 +153,8 @@ jobs:
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
+          wget -nc https://dl.winehq.org/wine-builds/winehq.key
+          sudo apt-key add winehq.key && sudo apt update
           sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main'
           sudo dpkg --add-architecture i386 && sudo apt update
           sudo apt install \
