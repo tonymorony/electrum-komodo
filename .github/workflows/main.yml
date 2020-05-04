@@ -150,7 +150,7 @@ jobs:
           sudo ACCEPT_EULA=Y apt-get upgrade -y
           sudo apt-get update
           sudo apt-get install -q \
-                  wine-development \
+                  wine64-development \
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
