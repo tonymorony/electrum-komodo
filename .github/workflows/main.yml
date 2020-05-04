@@ -150,13 +150,12 @@ jobs:
           sudo ACCEPT_EULA=Y apt-get upgrade -y
           sudo apt-get update
           sudo apt-get install -q \
-                  wine-development \
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
           sudo dpkg --add-architecture i386 && \
                   sudo apt-get update && \
-                  sudo apt-get install wine32-development -y
+                  sudo apt-get install wine-development wine32-development -y
 
       - name: Build (Wine) [on push]
         if:  github.event_name == 'push'
