@@ -160,8 +160,7 @@ jobs:
           sudo apt install \
                 wine-development \
                 wine64-development \
-                libwine-development \
-                libwine-development:i386
+                libwine-development
 
       - name: Build (Wine) [on push]
         if:  github.event_name == 'push'
