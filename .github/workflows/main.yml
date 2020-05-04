@@ -14,7 +14,7 @@ jobs:
 
   linux-appimage:
     name: Linux Build-Appimage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
       - uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
 
   linux-test:
     name: Linux Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
       - uses: actions/checkout@v2
@@ -136,7 +136,7 @@ jobs:
 
   wine-build:
     name: Wine Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
       - uses: actions/checkout@v2
@@ -150,7 +150,7 @@ jobs:
           sudo ACCEPT_EULA=Y apt-get upgrade -y
           sudo apt-get update
           sudo apt-get install -q \
-                  wine64-development \
+                  wine-development \
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
