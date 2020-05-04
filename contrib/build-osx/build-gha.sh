@@ -18,11 +18,7 @@ echo build version is $ELECTRUM_ZCASH_VERSION
 
 sudo pip3 install --upgrade pip
 sudo pip3 install -r contrib/deterministic-build/requirements.txt
-sudo pip3 install \
-    pycryptodomex==3.6.0 \
-    btchip-python==0.1.28 \
-    keepkey==4.0.2 \
-    trezor==0.9.1
+sudo pip3 install -r contrib/deterministic-build/requirements-hw.txt
 
 pyrcc5 icons.qrc -o gui/qt/icons_rc.py
 
