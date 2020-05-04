@@ -159,8 +159,7 @@ jobs:
                 wine32-development \
                 wine64-development \
                 libwine-development \
-                libwine-development:i386 \
-                fonts-wine
+                libwine-development:i386
 
       - name: Build (Wine) [on push]
         if:  github.event_name == 'push'
