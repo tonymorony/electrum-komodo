@@ -1,6 +1,14 @@
 name: Komodo Electrum CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - dev
+      - master
+  pull_request:
+    types: [opened, edited, reopened]
+  schedule:
+    - cron: '0 0 * * 1'
 
 jobs:
 
