@@ -159,7 +159,6 @@ jobs:
           sudo dpkg --add-architecture i386 && sudo apt update
           sudo apt install \
                 wine-development \
-                wine32-development \
                 wine64-development \
                 libwine-development \
                 libwine-development:i386
