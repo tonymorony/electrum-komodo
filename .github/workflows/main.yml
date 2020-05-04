@@ -153,14 +153,14 @@ jobs:
                   dirmngr \
                   gnupg2 \
                   p7zip-full -y
+          sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main'
           sudo dpkg --add-architecture i386 && sudo apt update
           sudo apt install \
-                libxml2:i386
                 wine-development \
                 wine32-development \
                 wine64-development \
                 libwine-development \
-                libwine-development:i386 
+                libwine-development:i386
 
       - name: Build (Wine) [on push]
         if:  github.event_name == 'push'
